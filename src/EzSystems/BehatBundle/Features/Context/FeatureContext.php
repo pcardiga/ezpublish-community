@@ -19,10 +19,10 @@ use Behat\Mink\Exception\UnsupportedDriverActionException as MinkUnsupportedDriv
 use Behat\Symfony2Extension\Context\KernelAwareInterface;
 use PHPUnit_Framework_Assert as Assertion;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Behat\Behat\Exception\PendingException;
 use eZ\Publish\Core\Base\Exceptions\NotFoundException;
 use eZ\Publish\Core\Base\Exceptions\InvalidArgumentType;
 use eZ\Publish\Core\Base\Exceptions\InvalidArgumentException;
-use Behat\Behat\Exception\PendingException;
 use EzSystems\BehatBundle\Features\Context\ContentManager;
 
 /**
@@ -45,12 +45,12 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      *      This will help in the managing of content for the tests that need
      *      to CRUD content
      */
-    private $contentManager;
+    public $contentManager;
 
     /**
      * @var array Array to map identifier to urls, should be set by child classes.
      */
-    protected $pageIdentifierMap = array();
+    public $pageIdentifierMap = array();
 
     /**
      * Valid Forms, should be set by child classes.
@@ -63,7 +63,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      * );
      * @var array
      */
-    protected $forms = array();
+    public $forms = array();
 
     /**
      * This will tell us which containers to search, should be set by child classes.
@@ -75,7 +75,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      * );
      * @var array This will have a ( identifier => array )
      */
-    protected $mainAttributes = array();
+    public $mainAttributes = array();
 
     /**
      * Content holder will have the data for the reuse data
@@ -83,12 +83,12 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      * or tested in later sentences.
      * @var array This will have a ( identifier => array ) for the data to be retested
      */
-    protected $contentHolder = array();
+    public $contentHolder = array();
 
     /**
      * @var string
      */
-    protected $priorSearchPhrase = '';
+    public $priorSearchPhrase = '';
 
     /**
      * Initializes context with parameters from behat.yml.
@@ -98,7 +98,6 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
     public function __construct( array $parameters )
     {
         $this->parameters = $parameters;
-        $this->useContext( "interface", new InterfaceHelperContext( $parameters ) );
         $this->contentManager = new ContentManager();
     }
 
@@ -113,7 +112,6 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
         $this->kernel = $kernel;
     }
 
-
      /**
       * @BeforeScenario
       *
@@ -124,81 +122,8 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      public function cleanContentHolder()
      {
          unset( $this->contentHolder );
+         $this->contentHolder = array();
      }
-
-    /**
-     * @When /^I search for "([^"]*)"$/
-     */
-    public function iSearchFor( $searchPhrase )
-    {
-        $session = $this->getSession();
-        $searchField = $session->getPage()->findById( 'site-wide-search-field' );
-
-        Assertion::assertNotNull( $searchField, 'Search field not found.' );
-
-        $searchField->setValue( $searchPhrase );
-
-        // Ideally, using keyPress(), but doesn't work since no keypress handler exists
-        // http://sahi.co.in/forums/discussion/2717/keypress-in-java/p1
-        //     $searchField->keyPress( 13 );
-        //
-        // Using JS instead:
-        // Note:
-        //     $session->executeScript( "$('#site-wide-search').submit();" );
-        // Gives:
-        //     error:_call($('#site-wide-search').submit();)
-        //     SyntaxError: missing ) after argument list
-        //     Sahi.ex@http://<hostname>/_s_/spr/concat.js:3480
-        //     @http://<hostname>/_s_/spr/concat.js:3267
-        // Solution: Encapsulating code in a closure.
-        // @todo submit support where recently added to MinkCoreDriver, should us it when the drivers we use support it
-        try
-        {
-            $session->executeScript( "(function(){ $('#site-wide-search').submit(); })()" );
-        }
-        catch ( MinkUnsupportedDriverActionException $e )
-        {
-            // For drivers not able to do javascript we assume we can click the hidden button
-            $searchField->getParent()->findButton( 'SearchButton' )->click();
-        }
-
-        // Store for reuse in result page
-        $this->priorSearchPhrase = $searchPhrase;
-    }
-
-    /**
-     * @Then /^I am (?:on|at) the "([^"]*)"$/
-     */
-    public function iAmOnThe( $pageIdentifier )
-    {
-        $currentUrl = $this->getUrlWithoutQueryString( $this->getSession()->getCurrentUrl() );
-
-        $expectedUrl = $this->locatePath( $this->getPathByPageIdentifier( $pageIdentifier ) );
-
-        Assertion::assertEquals(
-            $expectedUrl,
-            $currentUrl,
-            "Unexpected URL of the current site. Expected: '$expectedUrl'. Actual: '$currentUrl'."
-        );
-    }
-
-    /**
-     * @Then /^(?:|I )want dump of (?:|the )page$/
-     */
-    public function iWantDumpOfThePage()
-    {
-        echo $this->getSession()->getPage()->getContent();
-    }
-
-    /**
-     * @When /^I go to the "([^"]*)"$/
-     */
-    public function iGoToThe( $pageIdentifier )
-    {
-        return array(
-            new Step\When( 'I am on "' . $this->getPathByPageIdentifier( $pageIdentifier ) . '"' ),
-        );
-    }
 
     /**
      * Returns the path associated with $pageIdentifier
@@ -207,7 +132,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      *
      * @return string
      */
-    protected function getPathByPageIdentifier( $pageIdentifier )
+    public function getPathByPageIdentifier( $pageIdentifier )
     {
         if ( !isset( $this->pageIdentifierMap[$pageIdentifier] ) )
         {
@@ -224,7 +149,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      *
      * @return string
      */
-    protected function getUrlWithoutQueryString( $url )
+    public function getUrlWithoutQueryString( $url )
     {
         if ( strpos( $url, '?' ) !== false )
         {
@@ -232,75 +157,6 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
         }
 
         return $url;
-    }
-
-    /**
-     * @Then /^I see search (\d+) result$/
-     */
-    public function iSeeSearchResults( $total )
-    {
-        $resultCountElement = $this->getSession()->getPage()->find( 'css', 'div.feedback' );
-
-        Assertion::assertNotNull(
-            $resultCountElement,
-            'Could not find result count text element.'
-        );
-
-        Assertion::assertEquals(
-            "Search for \"{$this->priorSearchPhrase}\" returned {$total} matches",
-            $resultCountElement->getText()
-        );
-    }
-
-    /**
-     * @Given /^I am logged in as "([^"]*)" with password "([^"]*)"$/
-     */
-    public function iAmLoggedInAsWithPassword( $user, $password )
-    {
-        return array(
-            new Step\Given( 'I am on "/user/login"' ),
-            new Step\When( 'I fill in "Username" with "' . $user . '"' ),
-            new Step\When( 'I fill in "Password" with "' . $password . '"' ),
-            new Step\When( 'I press "Login"' ),
-            new Step\Then( 'I should be redirected to "/"' ),
-        );
-    }
-
-    /**
-     * @Then /^I should be redirected to "([^"]*)"$/
-     */
-    public function iShouldBeRedirectedTo( $redirectTarget )
-    {
-        $redirectForm = $this->getSession()->getPage()->find( 'css', 'form[name="Redirect"]' );
-
-        Assertion::assertNotNull(
-            $redirectForm,
-            'Missing redirect form.'
-        );
-
-        Assertion::assertEquals( $redirectTarget, $redirectForm->getAttribute( 'action' ) );
-    }
-
-    /**
-     * @Then /^I see (\d+) "([^"]*)" elements listed$/
-     */
-    public function iSeeListedElements( $count, $objectType )
-    {
-        $objectListTable = $this->getSession()->getPage()->find(
-            'xpath',
-            '//table[../h1 = "' . $objectType  . ' list"]'
-        );
-
-        Assertion::assertNotNull(
-            $objectListTable,
-            'Could not find listing table for ' . $objectType
-        );
-
-        Assertion::assertCount(
-            $count + 1,
-            $objectListTable->findAll( 'css', 'tr' ),
-            'Found incorrect number of table rows.'
-        );
     }
 
 /******************************************************************************
@@ -323,7 +179,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      *          ...
      *      );
      */
-    protected function convertTableToArrayOfData( TableNode $table, $data = null )
+    public function convertTableToArrayOfData( TableNode $table, $data = null )
     {
         if( empty( $data ) )
             $data = array();
@@ -379,7 +235,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      *
      * @return boolean
      */
-    protected function isSingleCharacterIdentifier( $value )
+    public function isSingleCharacterIdentifier( $value )
     {
         return is_string( $value ) && strlen( $value ) == 1 && $value >= 'A' && $value <= 'Z';
     }
@@ -403,7 +259,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      *
      * @return string       The search data to be inserted into a XPath
      */
-    protected function makeXpathAttributesSearch( $container, $completeXpath = true )
+    public function makeXpathAttributesSearch( $container, $completeXpath = true )
     {
         $handler = $this->getSession()->getSelectorsHandler();
         // check if single value (can be id or class)
@@ -450,7 +306,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      *
      * @todo A way to handle tag's and not attributes (since makeXpathAttributes only handle attributes)
      */
-    protected function makeMainAttributeXpathSearch( $container, $completeXpath = true )
+    public function makeMainAttributeXpathSearch( $container, $completeXpath = true )
     {
         Assertion::assertNotNull(
             $this->mainAttributes[ $container ],
@@ -470,7 +326,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      *
      * @throws PendingException If the $type isn't defined yet
      */
-    protected function getXpathTagsFor( $type )
+    public function getXpathTagsFor( $type )
     {
         switch ( strtolower( $type ) ){
         case "topic":
@@ -503,7 +359,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      * however can have multiple values:
      *  return array( "key" => array( "value1", "value2, ... ) );
      */
-    protected function getSettingsFromMultipleValue( $value )
+    public function getSettingsFromMultipleValue( $value )
     {
         $result = explode( ':', $value );
 
@@ -532,7 +388,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      *
      * @return mixed
      */
-    protected function getContentByIdentifier( $identifier )
+    public function getContentByIdentifier( $identifier )
     {
         return isset( $this->contentHolder[$identifier] ) ?
             $this->contentHolder[$identifier]:
@@ -546,7 +402,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      *
      * @return mixed
      */
-    protected function getFileByIdentifier( $identifier )
+    public function getFileByIdentifier( $identifier )
     {
         return is_file( $identifier )?
             $identifier:
@@ -559,7 +415,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      * @param  string      $type       This is for specifying what kind of dummy data to return/store
      * @param  null|string $identifier This is the identifier for the content holder
      */
-    protected function getDummyContentFor( $type, $identifier = null )
+    public function getDummyContentFor( $type, $identifier = null )
     {
         $data = null;
         // get/make the intended data
@@ -603,11 +459,10 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      *
      * @return null|object
      */
-    protected function loadContentObjectByUrl( $path )
+    public function loadContentObjectByUrl( $path )
     {
         throw new PendingException( "Content managing: Load content by url alias" );
     }
-
 
     /**
      * This will get/make dummy data to create/update a Content object
@@ -616,7 +471,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      *
      * @return array
      */
-    protected function getDummyDataForContentObjectOfContentType( $identifier )
+    public function getDummyDataForContentObjectOfContentType( $identifier )
     {
         if( isset( $this->contentHolder[ $identifier ]['fields'] ) )
             $fieldDefinitions = $this->contentHolder[ $identifier ];
@@ -706,7 +561,8 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
                 array_merge( $dummyData, $settings )
             );
 
-            // add feilds to contentHolder
+            // add fields to contentHolder
+            $this->contentHolder['identifier'] = array( "data" => array_merge( $dummyData, $settings ) );
         }
     }
 
@@ -715,7 +571,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      */
     public function iHaveContentObjectsOfContentTypeContainingContentObjectsOfContentType( $totalOfContainer, $containerContentTypeIdentifier, $totalOfLeafs, $leafContentTypeIdentifier )
     {
-
+        throw new PendingException( "Content managing: Content create" );
     }
 
     /**
@@ -776,41 +632,24 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
  ******************************************************************************/
 
     /**
-     * @Given /^I am (?:on|at) "([^"]*)" page$/
-     */
-    public function iAmAtPage( $page )
-    {
-        $this->visit(
-            $this->locatePath(
-                $this->getPathByPageIdentifier( $page )
-            )
-        );
-    }
-
-    /**
-     * @Given /^I click at "([^"]*)" link$/
-     */
-    public function iClickAtLink( $link )
-    {
-        // get link
-        $aux = $this->getSession()->getPage()->findLink( $link );
-
-        // throw exception if the link wans't found
-        if( empty( $aux ) )
-            throw new NotFoundException( "link", $link );
-
-        // if it was found click on it!
-        $aux->click();
-    }
-
-    /**
      * @Given /^I got "([^"]*)" disabled$/
      */
-    public function iGotDisabled( $parameter )
+    public function iGotDisabled( $setting )
     {
-        switch( $parameter ) {
+        switch( $setting ) {
         default:
-            throw new PendingException( "Define disabling '$parameter'" );
+            throw new PendingException( "Define disable '$setting'" );
+        }
+    }
+
+    /**
+     * @Given /^I got "([^"]*)" enabled$/
+     */
+    public function iGotEnabled( $setting )
+    {
+        switch( $setting ) {
+        default:
+            throw new PendingException( "Define disable '$setting'" );
         }
     }
 
@@ -818,664 +657,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
  * **************************        WHEN          ************************** *
  ******************************************************************************/
 
-    /**
-     * @When /^I fill "([^"]*)" with "([^"]*)"$/
-     *         I fill <field> with <value>
-     *
-     * @todo Find a way to treat selection
-     * @todo Find a way to treat checkboxes
-     * @todo Find a way to treat multiple data ( ex: author, multi option ,... )
-     * @todo Find a way to treat with not specified values (ex: "A")
-     */
-    public function iFillWith( $field, $value )
-    {
-        // get page
-        $page = $this->getSession()->getPage();
-
-        $fieldElement = $page->find('xpath', "//input[contains(@id,'$field')]");
-
-        // assert that the field was found
-        Assertion::assertNotNull(
-            $fieldElement,
-            "Could not find '$field' field."
-        );
-
-        // check if data is in fact an identifier (alias)
-        if( $this->isSingleCharacterIdentifier( $value ) )
-            $value = $this->getDummmyContentFor( $field, $value );
-
-        // insert following data
-        if( strtolower( $fieldElement->getAttribute( 'type') ) === 'file' ) {
-            Assertion::assertFileExists( $value, "File '$value' not found (for field '$field')" );
-            $fieldElement->attachFile( $value );
-        }
-        else
-            $fieldElement->setValue( $value );
-    }
-
-    /**
-     * @When /^I fill a valid "([^"]*)" form$/
-     */
-    public function iFillAValidForm( $form )
-    {
-        return $this->getSubcontext( "interface" )->fillForm( $this->forms[$form] );
-    }
-
-    /**
-     * @When /^I fill "([^"]*)" form with$/
-     */
-    public function iFillFormWith( $form, TableNode $table )
-    {
-        if( empty( $this->forms[$form] ) )
-            throw new NotFoundException( 'form', $form );
-
-        $data = $this->convertTableToArrayOfData( $table, $this->forms[$form] );
-
-        // fill the form
-        return $this->getSubcontext( "interface" )->fillForm( $data );
-    }
-
-    /**
-     * @When /^I fill form with only$/
-     */
-    public function iFillFormWithOnly( TableNode $table )
-    {
-        $data = $this->convertTableToArrayOfData( $table );
-
-        // fill the form
-        return $this->getSubcontext( "interface" )->fillForm( $data );
-    }
-
-    /**
-     * @When /^I click at "([^"]*)" button$/
-     */
-    public function iClickAtButton( $button )
-    {
-        $el = $this->getSession()->getPage()->findButton( $button );
-
-        // assert that button was found
-        Assertion::assertNotNull(
-            $el,
-            "Could not find '$button' button."
-        );
-
-        $el->click();
-    }
-
-    /**
-     * @When /^I click at "([^"]*)" image$/
-     */
-    public function iClickAtImage( $image )
-    {
-        $literal = $this->getSession()->getSelectorsHandler()->xpathLiteral( $image );
-
-        $xpath = "";
-        $possibleAttributes = array( 'href', 'id', 'class' );
-        foreach( $possibleAttributes as $attribute )
-            if( !empty( $xpath ) )
-                $xpath.= "|//a[contains(@$attribute,$literal)]/img/..";
-            else
-                $xpath.= "//a[contains(@$attribute,$literal)]/img/..";
-
-        $el = $this->getSession()->getPage()->find( 'xpath', $xpath );
-
-        // assert that button was found
-        Assertion::assertNotNull(
-            $el,
-            "Could not find '$image' image."
-        );
-
-        if( is_array( $el ) )
-            $el = $el[0];
-
-        $el->click();
-    }
-
-    /**
-     * @When /^I attach a file "([^"]*)" to "([^"]*)"$/
-     */
-    public function iAttachAFileTo( $identifier, $field )
-    {
-        // check/get file for testing
-        if( !is_file( $identifier ) )
-            $file =
-            $this->contentHolder[$identifier] =
-                $this->getDummyContentFor( 'file' );
-
-        return new Step\When( 'I fill "' . $field . '" with "' . $file . '"' );
-    }
-
-    /**
-     * @When /^I attach a file$/
-     */
-    public function iAttachAFile()
-    {
-        // get image for testing
-        $file = $this->getDummyContentFor( 'file' );
-
-        return new Step\When( 'I fill "file" with "' . $file . '"' );
-    }
-
-    /**
-     * @When /^I attach an image "([^"]*)" to "([^"]*)"$/
-     */
-    public function iAttachAnImageTo( $identifier, $field )
-    {
-        // check/get image for testing
-        if( !is_file( $identifier ) )
-            $image =
-            $this->contentHolder[$identifier] =
-                $this->getDummyContentFor( 'image' );
-
-        return new Step\When( 'I fill "' . $field . '" with "' . $image . '"' );
-    }
-
-    /**
-     * @When /^I attach an image$/
-     */
-    public function iAttachAnImage()
-    {
-        // get image for testing
-        $image = $this->getDummyContentFor( 'image' );
-
-        return new Step\When( 'I fill "image" with "' . $image . '"' );
-    }
-
 /******************************************************************************
  * **************************        THEN          ************************** *
  ******************************************************************************/
-
-    /**
-     * @Then /^I see "([^"]*)" page$/
-     *
-     * @todo Make the page comparison better
-     */
-    public function iSeePage( $page )
-    {
-        $currentUrl = $this->getUrlWithoutQueryString( $this->getSession()->getCurrentUrl() );
-
-        $expectedUrl = $this->locatePath( $this->getPathByPageIdentifier( $page ) );
-
-        Assertion::assertEquals(
-            $expectedUrl,
-            $currentUrl,
-            "Unexpected URL of the current site. Expected: '$expectedUrl'. Actual: '$currentUrl'."
-        );
-    }
-
-    /**
-     * @Then /^I see "([^"]*)" error$/
-     *
-     * @todo Find if error messages should be separeted from warnings or they should be together
-     */
-    public function iSeeError( $error )
-    {
-        $escapedText = $this->getSession()->getSelectorsHandler()->xpathLiteral( $error );
-
-        $page = $this->getSession()->getPage();
-        foreach(
-            array_merge(
-                $page->findAll( 'css', 'div.warning' ),   // warnings
-                $page->findAll( 'css', 'div.error' )      // errors
-            )
-            as $el
-        ) {
-            $aux = $el->find( 'named', array( 'content', $escapedText ) );
-            if( !empty( $aux ) ) {
-                Assertion::assertContains(
-                    $error,
-                    $aux->getText(),
-                    "Couldn't find '$error' error message in '{$aux->getText()}'"
-                );
-                return;
-            }
-        }
-
-        // if not found throw an failed assertion
-        Assertion::fail( "Couldn't find '$error' error message" );
-    }
-
-    /**
-     * @Then /^I see ["'](.+)["'] message$/
-     *
-     * @todo Find if this messages go into a specific tag.class
-     */
-    public function iSeeMessage( $message )
-    {
-        $el = $this->getSession()->getPage()->find( "named", array(
-                "content",
-                $this->getSession()->getSelectorsHandler()->xpathLiteral( $message )
-        ));
-
-        // assert that button was found
-        Assertion::assertNotNull(
-            $el,
-            "Could not find '$message' message."
-        );
-
-        Assertion::assertContains(
-            $message,
-            $el->getText(),
-            "Couldn't find '$message' message in '{$el->getText()}'"
-        );
-    }
-
-    /**
-     * @Given /^I don\'t see ["'](.+)["'] message$/
-     */
-    public function iDonTSeeMessage( $message )
-    {
-        $el = $this->getSession()->getPage()->find( "named", array(
-                "content",
-                $this->getSession()->getSelectorsHandler()->xpathLiteral( $message )
-        ));
-
-        // assert that button was found
-        Assertion::assertNull(
-            $el,
-            "Unexpected '$message' message found."
-        );
-    }
-
-
-    /**
-     * @Then /^I don\'t see "([^"]*)" button$/
-     */
-    public function iDonTSeeButton( $button )
-    {
-        $el = $this->getSession()->getPage()->findButton( $button );
-
-        if( !empty( $el ) )
-            Assertion::assertNotEquals(
-                $button,
-                $el->getText(),
-                "Unexpected '$button' button is present"
-            );
-        else
-            Assertion::assertNull( $el );
-    }
-
-    /**
-     * @Then /^I see "([^"]*)" button$/
-     */
-    public function iSeeButton( $button )
-    {
-        $el = $this->getSession()->getPage()->findButton( $button );
-
-        // assert that button was found
-        Assertion::assertNotNull(
-            $el,
-            "Could not find '$button' button."
-        );
-
-        Assertion::assertEquals(
-            $button,
-            $el->getText(),
-            "'$button' button is different than '{$el->getText()}'"
-        );
-    }
-
-    /**
-     * @Then /^I see "([^"]*)" button with attributes$/
-     */
-    public function iSeeButtonWithAttributes( $button, TableNode $table )
-    {
-        $el = $this->getSession()->getPage()->findButton( $button );
-
-        // assert that button was found
-        Assertion::assertNotNull(
-            $el,
-            "Could not find '$button' button."
-        );
-
-        Assertion::assertEquals(
-            $button,
-            $el->getText(),
-            "Failed asserting that '$button' is equal to '{$el->getText()}"
-        );
-
-        foreach( $table->getRows() as $attribute => $value )
-        {
-            // assert that attribute was found
-            Assertion::assertNotNull(
-                $el->getAttribute( $attribute ),
-                "Couldn't find '$attribute' attribute."
-            );
-
-            Assertion::assertEquals(
-                $value,
-                $el->getAttribute( $attribute ),
-                "Value '$value' of '$attribute' attribute doesn't match '{$el->getAttribute( $attribute )}'"
-            );
-        }
-    }
-
-    /**
-     * @Then /^I see image "([^"]*)"$/
-     */
-    public function iSeeImage( $image )
-    {
-        throw new PendingException();
-
-        $expected = $this->getFileByIdentifier( $image );
-        Assertion::assertFileExists( $expected, "Parameter '$expected' to be searched isn't a file" );
-
-        // iterate through all images checking
-        foreach( $this->getSession()->getPage()->findAll( 'xpath', '//img' ) as $img )
-        {
-            $path = $this->locatePath( $img->getAttribute( "src" ) );
-            if( md5_file( $expected ) == md5_file( $path ) ) {
-                Assertion::assertFileEquals( $expected , $path );
-                return;
-            }
-        }
-
-        // if it wasn't found throw an failed assertion
-        Assertion::fail( "Couln't find '$image' image" );
-    }
-
-    /**
-     * @Then /^I don\'t see image "([^"]*)"$/
-     */
-    public function iDonTSeeImage( $image )
-    {
-        throw new PendingException();
-
-        $expected = $this->getFileByIdentifier( $image );
-        Assertion::assertFileExists( $expected, "Parameter '$expected' to be searched isn't a file" );
-
-        // iterate through all images checking
-        foreach( $this->getSession()->getPage()->findAll( 'xpath', '//img' ) as $img )
-        {
-            $path = $this->locatePath( $img->getAttribute( "src" ) );
-            Assertion::assertFileNotEquals(
-                $expected,
-                $path,
-                "Unexpected '$image' image found"
-            );
-        }
-    }
-
-    /**
-     * @Then /^I see form filled with data "([^"]*)"$/
-     */
-    public function iSeeFormFilledWithData( $identifier )
-    {
-        Assertion::assertTrue(
-            isset( $this->contentHolder[$identifier] ),
-            "Content of '$identifier' identifier not found."
-        );
-
-        $data = $this->contentHolder[$identifier];
-
-        $newSteps = array();
-        foreach( $data as $field => $value ) {
-            $newSteps[]= new Step\Then( 'I see "' . $field .'" filled with "' . $value . '"' );
-        }
-
-        return $newSteps;
-    }
-
-    /**
-     * @Then /^I see form filled with data "([^"]*)" and$/
-     */
-    public function iSeeFormFilledWithDataAnd( $identifier, TableNode $table )
-    {
-        Assertion::assertTrue(
-            isset( $this->contentHolder[$identifier] ),
-            "Content of '$identifier' identifier not found."
-        );
-
-        $data = $this->convertTableToArrayOfData( $table, $this->contentHolder[$identifier] );
-
-        $newSteps = array();
-        foreach( $data as $field => $value ) {
-            $newSteps[]= new Step\Then( 'I see "' . $field .'" filled with "' . $value . '"' );
-        }
-
-        return $newSteps;
-    }
-
-    /**
-     * @Then /^I see form filled with$/
-     */
-    public function iSeeFormFilledWith( TableNode $table )
-    {
-        $data = $this->convertTableToArrayOfData( $table );
-
-        $newSteps = array();
-        foreach( $data as $field => $value ) {
-            $newSteps[]= new Step\Then( 'I see "' . $field .'" filled with "' . $value . '"' );
-        }
-
-        return $newSteps;
-    }
-
-
-    /**
-     * @Then /^I see "([^"]*)" filled with "([^"]*)"$/
-     */
-    public function iSeeFilledWith( $field, $value )
-    {
-        $el = $this->getSession()->getPage()->find( 'xpath', "//input[contains(@id,'$field')]" );
-
-        // assert that field was found
-        Assertion::assertNotEmpty(
-            $el,
-            "Could not find '$field' field."
-        );
-
-        $testValue = $el->getValue();
-        // check if it is dummy password sent by server, if it is skip this assertion
-        if( $testValue == "_ezpassword" )
-            return;
-
-        Assertion::assertEquals(
-            gettype( $value ),
-            gettype( $testValue ),
-            "Expected '$value' value has different type than '$testValue'"
-        );
-
-        // assert the value is equal to expected
-        Assertion::assertContains(
-            $value,
-            $testValue,
-            "Value '$value' of '$field' field doesn't match '{$el->getValue()}'"
-        );
-    }
-
-    /**
-     * @Then /^I see "([^"]*)" input$/
-     */
-    public function iSeeInput( $input )
-    {
-        Assertion::assertNotNull(
-            $this->getSession()->getPage()->find( 'xpath',
-                "//input[contains(@id,'$input')]|//input[contains(@name,'$input')]"
-            ),
-            "Input '$input' wasn't found"
-        );
-    }
-
-    /**
-     * @Then /^I see "([^"]*)" input "([^"]*)"$/
-     */
-    public function iSeeInput2( $input, $attribute )
-    {
-        Assertion::assertNotNull(
-            $this->getSession()->getPage()->find( 'xpath',
-                "//input[@$attribute and contains(@id,'$input')]|//input[@$attribute and contains(@name,'$input')]"
-            ),
-            "Field '$input' with attribute '$attribute' not found"
-        );
-    }
-
-    /**
-     * @Then /^I see links in$/
-     */
-    public function iSeeLinksIn( TableNode $table )
-    {
-        $session = $this->getSession();
-        foreach( $table->getRows as $row )
-        {
-            // prepare data
-            if( count( $row ) != 2 )
-                throw new InvalidArgumentException( $row, "should be an array with link and tag" );
-            list( $link, $type ) = $row;
-
-            $tag = $this->getXpathTagsFor( $type );
-
-            $literal = $session->getSelectorsHandler()->xpathLiteral( $link );
-            $el = $session->getPage()->find( "xpath", "$tag//a[@href and text() = $literal]" );
-
-            Assertion::assertNotNull( $el, "Couldn't find a link with '$link' text and inside '$tag' tag" );
-        }
-    }
-
-    /**
-     * @Then /^I see links for Content objects$/
-     *
-     * $table = array(
-     *      array(
-     *          [link|object],  // mandatory
-     *          parentLocation, // optional
-     *      ),
-     *      ...
-     *  );
-     *
-     * @todo check if it has a different url alias
-     * @todo check "parent" node
-     */
-    public function iSeeLinksForContentObjects( TableNode $table )
-    {
-        throw new PendingException( "Check links for objects" );
-
-        $session = $this->getSession();
-        foreach( $table->getRows as $row )
-        {
-            list( $link, $parent ) = $row;
-
-            Assertion::assertNotNull( $link, "Missing link for searching on table" );
-
-            $url = str_replace( ' ', '-', $link );
-            $el = $session->getPage()->find( "xpath", "//a[contains(@href, $url)]" );
-
-            Assertion::assertNotNull( $el, "Couldn't find a link for object '$link' with url containing '$url'" );
-        }
-    }
-
-    /**
-     * @Then /^I don\'t see links$/
-     */
-    public function iDonTSeeLinks( TableNode $table )
-    {
-        $session = $this->getSession();
-        foreach( $table->getRows as $row )
-        {
-            $link = $row[0];
-            $url = str_replace( ' ', '-', $link );
-            $literal = $session->getSelectorsHandler()->xpathLiteral( $link );
-            $el = $session->getPage()->find( "xpath", "//a[contains(@href, $url) or (text() = $literal and @href)]" );
-
-            Assertion::assertNull( $el, "Unexpected link found '{$el->getText()}'" );
-        }
-    }
-
-    /**
-     * @Then /^I don\'t see any Content object link$/
-     */
-    public function iDonTSeeAnyContentObjectLink()
-    {
-        // get all links
-        $links = $this->getSession()->getPage()->findAll( "xpath", "//a[starts-with(@href, "/")]" );
-
-        foreach( $links as $link )
-        {
-            Assertion::assertNull(
-                $this->loadContentObjectByUrl( $link->getAttribute( "href" ) ),
-                "Unexpected object found with url alias '{$link->getAttribute( "href" )}'"
-            );
-        }
-    }
-
-    /**
-     * @Then /^I see (\d+) Content object links$/
-     */
-    public function iSeeContentObjectLinks( $total )
-    {
-        // get all links
-        $links = $this->getSession()->getPage()->findAll( "xpath", "//a[starts-with(@href, "/")]" );
-
-        $count = 0;
-        foreach( $links as $link )
-        {
-            // count only valid links
-            $el = $this->loadContentObjectByUrl( $link->getAttribute( "href" ) );
-            if( !empty( $el ) )
-                $count++;
-        }
-
-        Assertion::assertEquals(
-            $total, $count,
-            "Expecting '$total' links found '$count'"
-        );
-    }
-
-    /**
-     * @Then /^I see (\d+) ([^\s]*)(?:|s) link(?:|s)$/
-     */
-    public function iSeeLink( $total, $type ) {
-        $count = count( $this->getSession()->getPage()->findAll( "xpath", $this->getXpathTagsFor( $type ) . "//a[@href]" ) );
-        Assertion::assertEquals(
-            $count, $total,
-            "Expecting '$total' links found '$count'"
-        );
-    }
-
-    /**
-     * @Then /^I see links for Content objects in following order$/
-     */
-    public function iSeeLinksForContentObjectsInFollowingOrder( TableNode $table )
-    {
-        $page = $this->getSession()->getPage();
-        // get all links
-        $links = $page->findAll( "xpath", "//a[@href]" );
-
-        $i = 0;
-        $count = count( $links );
-        $last = 'inicial';
-        foreach( $table->getRows() as $row )
-        {
-            // get values ( if there is no $parent defined on gherkin there is
-            // no problem since it will only be tested if it is not empty
-            list( $name, $parent ) = $row;
-
-            $literal = $this->getSession()->getSelectorsHandler()->xpathLiteral( $name );
-            $url = str_replace( ' ', '-', $literal );
-
-            // find the object
-            while(
-                !empty( $links[$i] )
-                // this will check if inside the link it finds the url inside href or the text has the name
-                && $links[$i]->find( "xpath", "//*[contains(@href,$url) or contains(text(),$literal)][@href]") != null
-            )
-                $i++;
-
-            // check if the link was found or the $i >= $count
-            Assertion::assertNotNull( $links[$i], "Couldn't find '$name' after '$last'" );
-
-            // check if there is a need to confirm parent
-            if( !empty( $parent ) ){
-                $parentLiteral = $this->getSession()->getSelectorsHandler()->xpathLiteral( $parent );
-                $parentUrl = str_replace( ' ', '-', $parentLiteral );
-                $xpath = "../../../" . $this->getXpathTagsFor( 'topic' ) . "/*[contains(@href,$parentUrl) or contains(text(),$parentLiteral)]";
-                Assertion::assertNotNull(
-                    $links[$i]->find( "xpath", $xpath ),
-                    "Couldn't find '$parent' parent of '$name' link"
-                );
-            }
-
-            $last = $name;
-        }
-    }
 }
