@@ -167,13 +167,12 @@ class BrowserContext extends BaseFeatureContext
      *      ...
      *  );
      *
+     * @todo verify if the links are for objects 
      * @todo check if it has a different url alias
      * @todo check "parent" node
      */
     public function iSeeLinksForContentObjects( TableNode $table )
     {
-        throw new PendingException( "Check links for objects" );
-
         $session = $this->getSession();
         $rows = $table->getRows();
         array_shift( $rows );   // this is needed to take the first row ( readability only )
