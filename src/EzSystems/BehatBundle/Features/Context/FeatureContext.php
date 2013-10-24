@@ -242,7 +242,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
         if ( isset( $this->forms[$form] ) )
             return $this->forms[$form];
 
-        throw new PendingException( "Data for '$form' form no defined" );
+        throw new PendingException( "Data for '$form' form not defined" );
     }
 
     /**
@@ -401,7 +401,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      */
     public function iGotDisabled( $setting )
     {
-        throw new PendingException( "need system management" );
+        throw new PendingException( "System management" );
     }
 
     /**
