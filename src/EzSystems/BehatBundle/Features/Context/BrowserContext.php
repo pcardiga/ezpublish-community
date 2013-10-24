@@ -306,6 +306,46 @@ class BrowserContext extends BaseFeatureContext
     }
 
     /**
+     * @When /^(?:|I )search for "([^"]*)"$/
+     */
+    public function iSearchFor( $searchPhrase )
+    {
+        $session = $this->getSession();
+        $searchField = $session->getPage()->findById( 'site-wide-search-field' );
+
+        Assertion::assertNotNull( $searchField, 'Search field not found.' );
+
+        $searchField->setValue( $searchPhrase );
+
+        // Ideally, using keyPress(), but doesn't work since no keypress handler exists
+        // http://sahi.co.in/forums/discussion/2717/keypress-in-java/p1
+        //     $searchField->keyPress( 13 );
+        //
+        // Using JS instead:
+        // Note:
+        //     $session->executeScript( "$('#site-wide-search').submit();" );
+        // Gives:
+        //     error:_call($('#site-wide-search').submit();)
+        //     SyntaxError: missing ) after argument list
+        //     Sahi.ex@http://<hostname>/_s_/spr/concat.js:3480
+        //     @http://<hostname>/_s_/spr/concat.js:3267
+        // Solution: Encapsulating code in a closure.
+        // @todo submit support where recently added to MinkCoreDriver, should us it when the drivers we use support it
+        try
+        {
+            $session->executeScript( "(function(){ $('#site-wide-search').submit(); })()" );
+        }
+        catch ( MinkUnsupportedDriverActionException $e )
+        {
+            // For drivers not able to do javascript we assume we can click the hidden button
+            $searchField->getParent()->findButton( 'SearchButton' )->click();
+        }
+
+        // Store for reuse in result page
+        $this->priorSearchPhrase = $searchPhrase;
+    }
+
+    /**
      * @Then /^(?:|I )see "([^"]*)" button with attributes(?:|\:)$/
      */
     public function iSeeButtonWithAttributes( $button, TableNode $table )
@@ -373,89 +413,28 @@ class BrowserContext extends BaseFeatureContext
     }
 
     /**
-     * @When /^(?:|I )search for "([^"]*)"$/
+     * @Then /^(?:|I )see image "([^"]*)"$/
      */
-    public function iSearchFor( $searchPhrase )
+    public function iSeeImage( $image )
     {
-        $session = $this->getSession();
-        $searchField = $session->getPage()->findById( 'site-wide-search-field' );
+        throw new PendingException( "Image finder" );
 
-        Assertion::assertNotNull( $searchField, 'Search field not found.' );
+        $expected = $this->getFileByIdentifier( $image );
+        Assertion::assertFileExists( $expected, "Parameter '$expected' to be searched isn't a file" );
 
-        $searchField->setValue( $searchPhrase );
-
-        // Ideally, using keyPress(), but doesn't work since no keypress handler exists
-        // http://sahi.co.in/forums/discussion/2717/keypress-in-java/p1
-        //     $searchField->keyPress( 13 );
-        //
-        // Using JS instead:
-        // Note:
-        //     $session->executeScript( "$('#site-wide-search').submit();" );
-        // Gives:
-        //     error:_call($('#site-wide-search').submit();)
-        //     SyntaxError: missing ) after argument list
-        //     Sahi.ex@http://<hostname>/_s_/spr/concat.js:3480
-        //     @http://<hostname>/_s_/spr/concat.js:3267
-        // Solution: Encapsulating code in a closure.
-        // @todo submit support where recently added to MinkCoreDriver, should us it when the drivers we use support it
-        try
+        // iterate through all images checking
+        foreach ( $this->getSession()->getPage()->findAll( 'xpath', '//img' ) as $img )
         {
-            $session->executeScript( "(function(){ $('#site-wide-search').submit(); })()" );
-        }
-        catch ( MinkUnsupportedDriverActionException $e )
-        {
-            // For drivers not able to do javascript we assume we can click the hidden button
-            $searchField->getParent()->findButton( 'SearchButton' )->click();
+            $path = $this->locatePath( $img->getAttribute( "src" ) );
+            if ( md5_file( $expected ) == md5_file( $path ) )
+            {
+                Assertion::assertFileEquals( $expected, $path );
+                return;
+            }
         }
 
-        // Store for reuse in result page
-        $this->priorSearchPhrase = $searchPhrase;
-    }
-
-    /**
-     * @Then /^(?:|I )see ["'](.+)["'] message$/
-     *
-     * @todo Find if this messages go into a specific tag.class
-     */
-    public function iSeeMessage( $message )
-    {
-        $el = $this->getSession()->getPage()->find(
-            "named",
-            array(
-                "content",
-                $this->getSession()->getSelectorsHandler()->xpathLiteral( $message )
-            )
-        );
-
-        // assert that message was found
-        Assertion::assertNotNull(
-            $el,
-            "Could not find '$message' message."
-        );
-
-        Assertion::assertContains(
-            $message,
-            $el->getText(),
-            "Couldn't find '$message' message in '{$el->getText()}'"
-        );
-    }
-
-    /**
-     * @Given /^(?:|I )see search (\d+) result$/
-     */
-    public function iSeeSearchResults( $arg1 )
-    {
-        $resultCountElement = $this->getSession()->getPage()->find( 'css', 'div.feedback' );
-
-        Assertion::assertNotNull(
-            $resultCountElement,
-            'Could not find result count text element.'
-        );
-
-        Assertion::assertEquals(
-            "Search for \"{$this->priorSearchPhrase}\" returned {$arg1} matches",
-            $resultCountElement->getText()
-        );
+        // if it wasn't found throw an failed assertion
+        Assertion::fail( "Couln't find '$image' image" );
     }
 
     /**
@@ -596,6 +575,52 @@ class BrowserContext extends BaseFeatureContext
             $count + 1,
             $objectListTable->findAll( 'css', 'tr' ),
             'Found incorrect number of table rows.'
+        );
+    }
+
+    /**
+     * @Then /^(?:|I )see ["'](.+)["'] message$/
+     *
+     * @todo Find if this messages go into a specific tag.class
+     */
+    public function iSeeMessage( $message )
+    {
+        $el = $this->getSession()->getPage()->find(
+            "named",
+            array(
+                "content",
+                $this->getSession()->getSelectorsHandler()->xpathLiteral( $message )
+            )
+        );
+
+        // assert that message was found
+        Assertion::assertNotNull(
+            $el,
+            "Could not find '$message' message."
+        );
+
+        Assertion::assertContains(
+            $message,
+            $el->getText(),
+            "Couldn't find '$message' message in '{$el->getText()}'"
+        );
+    }
+
+    /**
+     * @Given /^(?:|I )see search (\d+) result$/
+     */
+    public function iSeeSearchResults( $arg1 )
+    {
+        $resultCountElement = $this->getSession()->getPage()->find( 'css', 'div.feedback' );
+
+        Assertion::assertNotNull(
+            $resultCountElement,
+            'Could not find result count text element.'
+        );
+
+        Assertion::assertEquals(
+            "Search for \"{$this->priorSearchPhrase}\" returned {$arg1} matches",
+            $resultCountElement->getText()
         );
     }
 
