@@ -35,9 +35,45 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
     protected $parameters;
 
     /**
+     * This variable should have all the possible file names to use with getDummyContentFor( $type )
+     *
+     * @var array This var should serve has an holder to keep the avaliable files for testing
+     */
+    private $testFiles = array(
+        "images" => array(
+            "image.png",
+            "image.jpg",
+        ),
+        "binary" => array(),
+    );
+
+    /**
+     * This is actually set on contruct()
+     *
+     * @var string This is the path for the files
+     */
+    protected $filesPath;
+
+    /**
      * @var EzSystems\BehatBundle\Features\Context\Helpers\ContentManager
      */
     protected $contentManager;
+
+    /**
+     * This is an array of key value pairs of data that might be needed for later usage
+     * ex:
+     *  $contentHolder = array(
+     *      'key1'          => 'value1';
+     *      'indentifier2'  => array( 'it can', 'also be', 'an array' ),
+     *      'key3'          => array(
+     *          'or even' => array( 'any', 'kind of data'),
+     *          'like an' => Object,
+     *      ),
+     *  );
+     *
+     * @var array This will have any kind of values that we need to save for later usage
+     */
+    protected $contentHolder;
 
     /**
      * @var array Array to map identifier to urls, should be set by child classes.
@@ -46,7 +82,6 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
 
     /**
      * This will tell us which containers (design) to search, should be set by child classes.
-     *
      * ex:
      * $mainAttributes = array(
      *      "content"   => "thisIsATag",
@@ -86,6 +121,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
     public function __construct( array $parameters )
     {
         $this->parameters = $parameters;
+        $this->filesPath = __DIR__ . "/_fixtures/";
     }
 
     /**
@@ -348,7 +384,18 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
             break;
 
         case 'image':
-            $data = __DIR__ . "/_fixtures/image.png";
+            Assertion::assertNotEquals(
+                count( $this->testFiles['images'] ),
+                0,
+                "All '{count( $this->testFiles['images'] )}' images are in use"
+            );
+
+            // make full path for images
+            $aux = $this->filesPath . implode( ':::' . $this->filesPath, $this->testFiles['images'] );
+            $images = explode( ":::", $aux );
+
+            // finally pick one
+            $data = $images[rand( 0, count( $images ) - 1 )];
             break;
 
         default:
@@ -377,6 +424,30 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
         }
 
         return $this->pageIdentifierMap[$pageIdentifier];
+    }
+
+    /**
+     * Return the path to the file
+     *
+     * @param  string The path, or identifier for the file
+     *
+     * @return string
+     *
+     * @todo Add possibility to search if the file is on ezpublish (search for it)
+     */
+    protected function getFileByIdentifier( $identifier )
+    {
+        $file = "";
+        if ( !is_file( $identifier ) )
+        {
+            if ( isset( $this->contentHolder[$identifier] ) )
+                $file = $this->contentHolder[$identifier];
+        }
+        else
+            $file = $identifier;
+
+        Assertion::assertFileExists( $file, "File '$file' wasn't found" );
+        return $file;
     }
 
     /**
