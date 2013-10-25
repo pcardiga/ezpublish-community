@@ -136,6 +136,22 @@ class BrowserContext extends BaseFeatureContext
     }
 
     /**
+     * @When /^(?:|I )attach an image "([^"]*)" to "([^"]*)"$/
+     */
+    public function iAttachAnImageTo( $identifier, $field )
+    {
+        // check/get image for testing
+        if ( !is_file( $identifier ) )
+            $image = $this->getDummyContentFor( 'image' );
+        else
+            $image = $identifier;
+
+        $this->contentHolder[$identifier] = $image;
+
+        return new Step\When( 'I fill "' . $field . '" with "' . $image . '"' );
+    }
+
+    /**
      * @When /^(?:|I )click at "([^"]*)" button$/
      * @When /^(?:|I )click at ([A-Za-z_-\d\s]*) button$/
      */
@@ -187,18 +203,15 @@ class BrowserContext extends BaseFeatureContext
      */
     public function iDonTSeeImage( $image )
     {
-        throw new PendingException( "Image finder" );
-
         $expected = $this->getFileByIdentifier( $image );
-        Assertion::assertFileExists( $expected, "Parameter '$expected' to be searched isn't a file" );
 
         // iterate through all images checking
-        foreach ( $this->getSession()->getPage()->findAll( 'xpath', '//img' ) as $img )
+        foreach ( $this->getSession()->getPage()->findAll( 'xpath', '//img[@src]' ) as $img )
         {
             $path = $this->locatePath( $img->getAttribute( "src" ) );
-            Assertion::assertFileNotEquals(
-                $expected,
-                $path,
+            Assertion::assertNotEquals(
+                md5_file( $expected ),
+                md5_file( $path ),
                 "Unexpected '$image' image found"
             );
         }
@@ -346,17 +359,14 @@ class BrowserContext extends BaseFeatureContext
     }
 
     /**
-     * @Then /^(?:|I )see "([^"]*)" button with attributes(?:|\:)$/
+     * @Then /^(?:|I )see "([^"]*)" button with (?:|attributes)(?:|\:)$/
      */
     public function iSeeButtonWithAttributes( $button, TableNode $table )
     {
         $el = $this->getSession()->getPage()->findButton( $button );
 
         // assert that button was found
-        Assertion::assertNotNull(
-            $el,
-            "Could not find '$button' button."
-        );
+        Assertion::assertNotNull( $el, "Could not find '$button' button." );
 
         Assertion::assertEquals(
             $button,
@@ -366,8 +376,9 @@ class BrowserContext extends BaseFeatureContext
 
         $rows = $table->getRows();
         array_shift( $rows );   // this is needed to take the first row ( readability only )
-        foreach ( $rows as $attribute => $value )
+        foreach ( $rows as $row )
         {
+            list( $attribute, $value ) = $row;
             // assert that attribute was found
             Assertion::assertNotNull(
                 $el->getAttribute( $attribute ),
@@ -413,22 +424,109 @@ class BrowserContext extends BaseFeatureContext
     }
 
     /**
+     * @Then /^(?:|I )see "([^"]*)" filled with "([^"]*)"$/
+     */
+    public function iSeeFilledWith( $field, $value )
+    {
+        $el = $this->getSession()->getPage()->find( 'xpath', "//input[contains(@id,'$field')]" );
+
+        // assert that field was found
+        Assertion::assertNotEmpty(
+            $el,
+            "Could not find '$field' field."
+        );
+
+        $testValue = $el->getValue();
+        // check if it is dummy password sent by server, if it is skip this assertion
+        if ( $testValue == "_ezpassword" )
+            return;
+
+        Assertion::assertEquals(
+            gettype( $value ),
+            gettype( $testValue ),
+            "Expected '$value' value has different type than '$testValue'"
+        );
+
+        // assert the value is equal to expected
+        Assertion::assertContains(
+            $value,
+            $testValue,
+            "Value '$value' of '$field' field doesn't match '{$el->getValue()}'"
+        );
+    }
+
+    /**
+     * @Then /^(?:|I )see form filled with(?:|\:)$/
+     */
+    public function iSeeFormFilledWith( TableNode $table )
+    {
+        $data = $this->convertTableToArrayOfData( $table );
+
+        $newSteps = array();
+        array_shift( $data );   // this is needed to take the first row ( readability only )
+        foreach ( $data as $field => $value )
+            $newSteps[] = new Step\Then( 'I see "' . $field .'" filled with "' . $value . '"' );
+
+        return $newSteps;
+    }
+
+    /**
+     * @Then /^(?:|I )see form filled with data "([^"]*)"$/
+     */
+    public function iSeeFormFilledWithData( $identifier )
+    {
+        Assertion::assertTrue(
+            isset( $this->contentHolder[$identifier] ),
+            "Content of '$identifier' identifier not found."
+        );
+
+        $data = $this->contentHolder[$identifier];
+
+        $newSteps = array();
+        foreach ( $data as $field => $value )
+            $newSteps[] = new Step\Then( 'I see "' . $field .'" filled with "' . $value . '"' );
+
+        return $newSteps;
+    }
+
+    /**
+     * @Then /^(?:|I )see form filled with data "([^"]*)" and(?:|\:)$/
+     */
+    public function iSeeFormFilledWithDataAnd( $identifier, TableNode $table )
+    {
+        Assertion::assertTrue(
+            isset( $this->contentHolder[$identifier] ),
+            "Content of '$identifier' identifier not found."
+        );
+
+        $data = $this->convertTableToArrayOfData(
+            $table,
+            $this->contentHolder[$identifier]
+        );
+
+        $newSteps = array();
+        array_shift( $data );   // this is needed to take the first row ( readability only )
+        foreach ( $data as $field => $value )
+            $newSteps[] = new Step\Then( 'I see "' . $field .'" filled with "' . $value . '"' );
+
+        return $newSteps;
+    }
+
+    /**
      * @Then /^(?:|I )see image "([^"]*)"$/
      */
     public function iSeeImage( $image )
     {
-        throw new PendingException( "Image finder" );
-
         $expected = $this->getFileByIdentifier( $image );
         Assertion::assertFileExists( $expected, "Parameter '$expected' to be searched isn't a file" );
 
         // iterate through all images checking
-        foreach ( $this->getSession()->getPage()->findAll( 'xpath', '//img' ) as $img )
+        foreach ( $this->getSession()->getPage()->findAll( 'xpath', '//img[@src]' ) as $img )
         {
             $path = $this->locatePath( $img->getAttribute( "src" ) );
             if ( md5_file( $expected ) == md5_file( $path ) )
             {
-                Assertion::assertFileEquals( $expected, $path );
+                Assertion::assertEquals( 1, 1 );
                 return;
             }
         }
