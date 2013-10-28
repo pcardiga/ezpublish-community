@@ -38,6 +38,7 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
     protected $parameters;
 
     /**
+     * Notice: the pageIdentifer should be defined in lower cases
      * @var array Array to map identifier to urls, should be set by child classes.
      */
     protected $pageIdentifierMap = array();
