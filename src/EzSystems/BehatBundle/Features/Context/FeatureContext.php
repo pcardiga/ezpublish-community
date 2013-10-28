@@ -233,12 +233,12 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
      */
     protected function getPathByPageIdentifier( $pageIdentifier )
     {
-        if ( !isset( $this->pageIdentifierMap[$pageIdentifier] ) )
+        if ( !isset( $this->pageIdentifierMap[strtolower( $pageIdentifier )] ) )
         {
             throw new \RuntimeException( "Unknown page identifier '{$pageIdentifier}'." );
         }
 
-        return $this->pageIdentifierMap[$pageIdentifier];
+        return $this->pageIdentifierMap[strtolower( $pageIdentifier )];
     }
 
     /**
