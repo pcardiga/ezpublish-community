@@ -67,23 +67,44 @@ class BrowserContext extends BaseFeatureContext
     }
 
     /**
-     * @Then /^(?:|I )don\'t see links(?:|\:)$/
+     * @Then /^(?:|I )(?:don\'t|do not) see links(?:|\:)$/
      */
     public function iDonTSeeLinks( TableNode $table )
     {
-        $session = $this->getSession();
+        $this->iDonTSeeOnSomePlaceTheLinks( 'main', $table );
+    }
+
+    /**
+     * @Given /^I (?:don\'t|do not) see on ([A-Za-z\s]*) the links:$/
+     */
+    public function iDonTSeeOnSomePlaceTheLinks( $somePlace, TableNode $table )
+    {
         $rows = $table->getRows();
         array_shift( $rows );   // this is needed to take the first row ( readability only )
-        $base = $this->makeXpathForBlock( 'main' );
+
+        $base = $this->makeXpathForBlock( $somePlace );
         foreach ( $rows as $row )
         {
             $link = $row[0];
-            $url = $this->literal( str_replace( ' ', '-', $link ) );
             $literal = $this->literal( $link );
-            $el = $session->getPage()->find( "xpath", "$base//a[text() = $literal][@href]" );
+            $el = $this->getSession()->getPage()->find( "xpath", "$base//a[text() = $literal][@href]" );
 
             Assertion::assertNull( $el, "Unexpected link found" );
         }
+    }
+
+    /**
+     * @Then /^I (?:don\'t|do not) see(?: the| ) ([A-Za-z\s]*) menu$/
+     */
+    public function iDonTSeeTheSubMenu( $menu )
+    {
+        $xpath = $this->makeXpathForBlock( "$menu menu" );
+        if ( empty( $xpath ) )
+            throw new PendingException( "Menu '$menu' not defined" );
+
+        $el = $this->getSession()->getPage()->find( "xpath", $xpath );
+
+        Assertion::assertNull( $el, "" );
     }
 
     /**
@@ -138,7 +159,7 @@ class BrowserContext extends BaseFeatureContext
     }
 
     /**
-     * @Given /^(?:|I )see search (\d+) result$/
+     * @Then /^(?:|I )see search (\d+) result$/
      */
     public function iSeeSearchResults( $arg1 )
     {
@@ -157,80 +178,133 @@ class BrowserContext extends BaseFeatureContext
 
     /**
      * @Then /^(?:|I )see links for Content objects(?:|\:)$/
-     *
-     * $table = array(
-     *      array(
-     *          [link|object],  // mandatory
-     *          parentLocation, // optional
-     *      ),
-     *      ...
-     *  );
-     *
-     * @todo verify if the links are for objects
-     * @todo check if it has a different url alias
-     * @todo check "parent" node
      */
     public function iSeeLinksForContentObjects( TableNode $table )
     {
-        $session = $this->getSession();
+        $this->iSeeOnSomePlaceTheLinksForContentObjects( 'main', $table );
+    }
+
+    /**
+     * @Given /^I see on ([A-Za-z\s]*) the links for Content objects(?:|\:)$/
+     *
+     * @todo check the parents (if defined)
+     */
+    public function iSeeOnSomePlaceTheLinksForContentObjects( $somePlace, TableNode $table)
+    {
         $rows = $table->getRows();
         array_shift( $rows );   // this is needed to take the first row ( readability only )
-        $base = $this->makeXpathForBlock( 'main' );
+
+        $links = $parents = array();
         foreach ( $rows as $row )
         {
             if( count( $row ) >= 2 )
-                list( $link, $parent ) = $row;
+                list( $links[], $parents[] ) = $row;
             else
-                $link = $row[0];
+                $links[] = $row[0];
+        }
 
+        // check links
+        $this->checkLinksForContentObjects( $links, $somePlace );
+
+        // to end the assertion, we need to verify parents (if specified)
+//        if ( !empty( $parents ) )
+//            $this->checkLinkParents( $links, $parents );
+    }
+
+    /**
+     * Find the links passed, assert they exist in the specified place
+     *
+     * @param array  $links The links to be asserted
+     * @param string $where The place where should search for the links
+     *
+     * @todo verify if the links are for objects
+     * @todo check if it has a different url alias
+     */
+    protected function checkLinksForContentObjects( array $links, $where )
+    {
+        $base = $this->makeXpathForBlock( $where );
+        foreach ( $links as $link )
+        {
             Assertion::assertNotNull( $link, "Missing link for searching on table" );
 
-            $url = $this->literal( str_replace( ' ', '-', $link ) );
+            $literal = $this->literal( $link );
+            $el = $this->getSession()->getPage()->find(
+                "xpath",
+                "$base//a[contains( text(),$literal )][@href]"
+            );
 
-            $el = $session->getPage()->find( "xpath", "$base//a[contains(@href, $url)]" );
-
-            Assertion::assertNotNull( $el, "Couldn't find a link for object '$link' with url containing '$url'" );
+            Assertion::assertNotNull( $el, "Couldn't find a link for object '$link'" );
         }
     }
 
     /**
      * @Then /^(?:|I )see links for Content objects in following order(?:|\:)$/
-     *
-     *  @todo check "parent" node
      */
     public function iSeeLinksForContentObjectsInFollowingOrder( TableNode $table )
     {
-        $page = $this->getSession()->getPage();
-        $base = $this->makeXpathForBlock( 'main' );
-        // get all links
-        $links = $page->findAll( "xpath", "$base//a[@href]" );
+        $this->iSeeOnSomePlaceLinksInFollowingOrder( 'main', $table );
+    }
 
-        $i = $passed = 0;
-        $last = '';
+    /**
+     * @Then /^I see on ([A-Za-z\s]*) links in following order:$/
+     *
+     *  @todo check "parent" node
+     */
+    public function iSeeOnSomePlaceLinksInFollowingOrder( $somePlace, TableNode $table )
+    {
+        $base = $this->makeXpathForBlock( $somePlace );
+        // get all links
+        $available = $this->getSession()->getPage()->findAll( "xpath", "$base//a[@href]" );
+
         $rows = $table->getRows();
         array_shift( $rows );   // this is needed to take the first row ( readability only )
 
+        // make link and parent arrays:
+        $links = $parents = array();
         foreach ( $rows as $row )
         {
-            // get values ( if there is no $parent defined on gherkin there is
-            // no problem since it will only be tested if it is not empty
-            if( count( $row ) >= 2 )
-                list( $name, $parent ) = $row;
+            if ( count( $row ) >= 2 )
+                list( $links[], $parents[] ) = $row;
             else
-                $name = $row[0];
+                $links[] = $row[0];
+        }
 
+        // now verify the link order
+        $this->checkLinkOrder( $links, $available );
+
+        // to end the assertion, we need to verify parents (if specified)
+//        if ( !empty( $parents ) )
+//            $this->checkLinkParents( $links, $parents );
+    }
+
+    /**
+     * Checks if links show up in the following order
+     * Notice: if there are 3 links and we omit the middle link it will also be
+     *  correct. It only checks order, not if there should be anything in
+     *  between them
+     *
+     * @param array         $links
+     * @param NodeElement[] $available
+     */
+    protected function checkLinkOrder( array $links, array $available )
+    {
+        $i = $passed = 0;
+        $last = '';
+        foreach ( $links as $link )
+        {
+            $name = $link;
             $url = str_replace( ' ', '-', $name );
 
             // find the object
             while(
-                !empty( $links[$i] )
-                && strpos( $links[$i]->getAttribute( "href" ), $url ) === false
-                && strpos( $links[$i]->getText(), $name ) === false
+                !empty( $available[$i] )
+                && strpos( $available[$i]->getAttribute( "href" ), $url ) === false
+                && strpos( $available[$i]->getText(), $name ) === false
             )
                 $i++;
 
             $test = !null;
-            if( empty( $links[$i] ) )
+            if( empty( $available[$i] ) )
                 $test = null;
 
             // check if the link was found or the $i >= $count
@@ -241,9 +315,9 @@ class BrowserContext extends BaseFeatureContext
         }
 
         Assertion::assertEquals(
-            count( $rows ),
+            count( $links ),
             $passed,
-            "Expected to evaluate '{count( $rows )}' links evaluated '{$passed}'"
+            "Expected to evaluate '{count( $links )}' links evaluated '{$passed}'"
         );
     }
 
@@ -294,6 +368,20 @@ class BrowserContext extends BaseFeatureContext
             $objectListTable->findAll( 'css', 'tr' ),
             'Found incorrect number of table rows.'
         );
+    }
+
+    /**
+     * @Then /^I see (?:the |)([A-Za-z\s]*) menu$/
+     */
+    public function iSeeSomeMenu( $menu )
+    {
+        $xpath = $this->makeXpathForBlock( "$menu menu" );
+        if ( empty( $xpath ) )
+            throw new PendingException( "Menu '$menu' not defined" );
+
+        $el = $this->getSession()->getPage()->find( "xpath", $xpath );
+
+        Assertion::assertNotNull( $el, "" );
     }
 
     /**

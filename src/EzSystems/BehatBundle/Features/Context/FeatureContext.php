@@ -38,12 +38,14 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
     protected $parameters;
 
     /**
+     * Notice: the pageIdentifer should be defined in lower cases
      * @var array Array to map identifier to urls, should be set by child classes.
      */
     protected $pageIdentifierMap = array();
 
     /**
      * This will tell us which containers (design) to search, should be set by child classes.
+     * Notice: the pageIdentifer should be defined in lower cases
      *
      * ex:
      * $mainAttributes = array(
@@ -113,16 +115,29 @@ class FeatureContext extends MinkContext implements KernelAwareInterface
     /**
      * This method works as a complement to the $mainAttributes var
      *
+     * $blockExceptions makes possible to have definitions on BDD like "site"
+     *  that aren't defined without breaking the test, also adding "", so if no
+     *  block is defined it also shouldn't break
+     *
      * @param  string $block This should be an identifier for the block to use
      *
      * @return string
      *
      * @see $this->mainAttributes
      */
-    public function makeXpathForBlock( $block = 'main' )
+    public function makeXpathForBlock( $block )
     {
+        // exceptions read description for detailed info
+        $blockExceptions = array( "site", "page", "" );
+
+        // check if the block is defined
         if ( !isset( $this->mainAttributes[strtolower( $block )] ) )
-            return "";
+        {
+            if( !in_array( strtolower( $block ), $blockExceptions ) )
+                throw new PendingException( "Define block '$block'");
+            else
+                return "";
+        }
 
         $xpath = $this->mainAttributes[strtolower( $block )];
 
