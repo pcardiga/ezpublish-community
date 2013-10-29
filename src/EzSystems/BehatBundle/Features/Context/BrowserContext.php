@@ -238,6 +238,65 @@ class BrowserContext extends BaseFeatureContext
     }
 
     /**
+     * @Then /^I see links:$/
+     */
+    public function iSeeLinks( TableNode $table )
+    {
+        $this->iSeeOnSomePlaceLinks( 'main', $table );
+    }
+
+    /**
+     * @Then /^I see on ([A-Za-z\s]*) links:$/
+     */
+    public function iSeeOnSomePlaceLinks( $somePlace, TableNode $table )
+    {
+        $base = $this->makeXpathForBlock( $somePlace );
+        // get all links
+        $available = $this->getSession()->getPage()->findAll( "xpath", "$base//a[@href]" );
+
+        $rows = $table->getRows();
+        array_shift( $rows );   // this is needed to take the first row ( readability only )
+
+        // remove links from embeded arrays
+        $links = array();
+        foreach ( $rows as $row )
+            $links[] = $row[0];
+
+        // and finaly verify their existence
+    }
+
+    /**
+     * Check existence of links
+     *
+     * @param array         $links
+     * @param NodeElement[] $available
+     */
+    protected function checkLinksExistence( array $links, array $available )
+    {
+        // verify if every required link is in available
+        foreach ( $links as $link )
+        {
+            $name = $link;
+            $url = str_replace( ' ', '-', $name );
+
+            $i = 0;
+            while(
+                !empty( $available[$i] )
+                && strpos( $available[$i]->getAttribute( "href" ), $url ) === false
+                && strpos( $available[$i]->getText(), $name ) === false
+            )
+                $i++;
+
+            $test = !null;
+            if( empty( $available[$i] ) )
+                $test = null;
+
+            // check if the link was found or the $i >= $count
+            Assertion::assertNotNull( $test, "Couldn't find '$name' link" );
+        }
+    }
+
+    /**
      * @Then /^(?:|I )see links for Content objects in following order(?:|\:)$/
      */
     public function iSeeLinksForContentObjectsInFollowingOrder( TableNode $table )
@@ -382,6 +441,14 @@ class BrowserContext extends BaseFeatureContext
         $el = $this->getSession()->getPage()->find( "xpath", $xpath );
 
         Assertion::assertNotNull( $el, "" );
+    }
+
+    /**
+     * @Given /^I see "([^"]*)" title$/
+     */
+    public function iSeeTitle( $title )
+    {
+        throw new PendingException();
     }
 
     /**
