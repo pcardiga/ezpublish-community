@@ -17,6 +17,7 @@ use Behat\Behat\Context\Step;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Behat\Exception\PendingException;
 use Behat\Mink\Exception\UnsupportedDriverActionException as MinkUnsupportedDriverActionException;
+use Behat\Mink\Element\NodeElement;
 
 /**
  * Browser interface helper context.
@@ -444,11 +445,181 @@ class BrowserContext extends BaseFeatureContext
     }
 
     /**
-     * @Given /^I see "([^"]*)" title$/
+     * @Then /^I see table with:$/
+     */
+    public function iSeeTableWith( TableNode $table )
+    {
+        $rows = $table->getRows();
+        $headers = array_shift( $rows );
+
+        $max = count( $headers );
+        $mainHeader = array_shift( $headers );
+        foreach( $rows as $row )
+        {
+            $mainColumn = array_shift( $row );
+            $foundRows = $this->getTableRow( $mainColumn, $mainHeader );
+
+            $found = false;
+            $maxFound = count( $foundRows );
+            for ( $i = 0; $i < $maxFound && !$found; $i++ )
+                if( $this->assertTableRow( $foundRows[$i], $row, $headers ) )
+                    $found = true;
+
+            $message = "Couldn't find row with elements: '" . implode( ",", array_merge( array($mainColumn), $row ) ) . "'";
+            Assertion::assertTrue( $found, $message );
+        }
+    }
+
+    /**
+     * Verifies if a row as the expected columns, position of columns can be added
+     * for a more accurated assertion
+     *
+     * @param \Behat\Mink\Element\NodeElement  $row              Table row node element
+     * @param string[]                         $columns          Column text to assert
+     * @param string[]|int[]                   $columnsPositions Columns positions in int or string (number must be in string)
+     *
+     * @return boolean
+     */
+    protected function assertTableRow( NodeElement $row, array $columns, array $columnsPositions = null )
+    {
+        // find which kind of column is in this row
+        $elType = $row->find( 'xpath', "/th" );
+        $type = ( empty( $elType ) ) ? '/td': '/th';
+
+        $max = count( $columns );
+        for( $i = 0; $i < $max; $i++ )
+        {
+            $position = "";
+            if( !empty( $columnsPositions[$i] ) )
+                $position = "[{$this->getNumberFromString( $columnsPositions[$i] )}]";
+
+            $el = $row->find( "xpath", "$type$position" );
+
+            // check if match with expected if not return false
+            if ( $el === null || $columns[$i] !== $el->getText())
+                return false;
+        }
+
+        // if we're here then it means all have ran as expected
+        return true;
+    }
+
+    /**
+     * Find a(all) table row(s) that match the column text
+     *
+     * @param string        $text       Text to be found
+     * @param string|int    $column     In which column the text should be found
+     * @param string        $tableXpath If there is a specific table
+     *
+     * @return Behat\Mink\Element\NodeElement[]
+     */
+    protected function getTableRow( $text, $column = null, $tableXpath = null )
+    {
+         // check column
+        if ( !empty( $column ) )
+        {
+            if ( is_integer( $column ) )
+                $columnNumber = "[$column]";
+            else
+                $columnNumber = "[{$this->getNumberFromString( $column )}]";
+        }
+        else
+            $columnNumber = "";
+
+        // get all possible elements
+        $elements = array_merge(
+            $this->getSession()->getPage()->findAll( "xpath", "$tableXpath//tr/th" ),
+            $this->getSession()->getPage()->findAll( "xpath", "$tableXpath//tr/td" )
+        );
+
+        $foundXpath = array();
+        $total = count( $elements );
+        $i = 0;
+        while ( $i < $total )
+        {
+            if(strpos( $elements[$i]->getText(), $text ) !== false )
+                $foundXpath[] = $elements[$i]->getParent();
+
+            $i++;
+        }
+
+        return $foundXpath;
+    }
+
+    /**
+     * @Then /^I see "([^"]*)" text emphasized$/
+     */
+    public function iSeeTextEmphasized( $text )
+    {
+        $this->iSeeOnSomePlaceTextEmphasized( 'main', $text );
+    }
+
+    /**
+     * @Then /^I see (?:on|at) "([^"]*)" (?:the |)"([^"]*)" text emphasized$/
+     */
+    public function iSeeOnSomePlaceTextEmphasized( $somePlace, $text )
+    {
+        // first find the text
+        $base = $this->makeXpathForBlock( $somePlace );
+        $el = $this->getSession()->getPage()->findAll( "xpath", "$base//*[contains( text(), {$this->literal( $text )} )]" );
+        Assertion::assertNotNull( $el, "Coudn't find text '$text' at '$somePlace' content" );
+
+        // verify only one was found
+        Assertion::assertEquals( count( $el ), 1, "Expecting to find '1' found '" . count( $el ) ."'" );
+
+        // finaly verify if it has custom charecteristics
+        Assertion::assertTrue(
+            $this->assertElementEmphasized( $el[0] ),
+            "The text '$text' isn't emphasized"
+        );
+    }
+
+    /**
+     * Verifies if the element has 'special' configuration on a attribute (default -> style)
+     *
+     * @param \Behat\Mink\Element\NodeElement  $el              The element that we want to test
+     * @param string                           $characteristic  Verify a specific characteristic from attribute
+     * @param string                           $attribute       Verify a specific attribute
+     *
+     * @return boolean
+     */
+    protected function assertElementEmphasized( NodeElement $el, $characteristic = null, $attribute = "style" )
+    {
+        // verify it has the attribute we're looking for
+        if ( !$el->hasAttribute( $attribute ) )
+            return false;
+
+        // get the attribute
+        $attr = $el->getAttribute( $attribute );
+
+        // check if want to test specific characteristic and if it is present
+        if ( !empty( $characteristic) && strpos( $attr, $characteristic ) === false )
+            return false;
+
+        // if we're here it is emphasized
+        return true;
+    }
+
+    /**
+     * @Then /^(?:|I )see ["'](.+)["'] (?:title|topic)$/
      */
     public function iSeeTitle( $title )
     {
-        throw new PendingException();
+        $literal = $this->literal( $title );
+        $xpath = $this->concatTagsWithXpath(
+            $this->getTagsFor( "title" ),
+            "[text() = $literal]"
+        );
+
+        $el = $this->getSession()->getPage()->find( "xpath", $xpath );
+
+        // assert that message was found
+        Assertion::assertNotNull( $el, "Could not find '$title' title." );
+        Assertion::assertContains(
+            $title,
+            $el->getText(),
+            "Couldn't find '$title' title in '{$el->getText()}'"
+        );
     }
 
     /**
