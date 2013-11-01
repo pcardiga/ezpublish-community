@@ -17,6 +17,7 @@ use Behat\Behat\Context\Step;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Behat\Exception\PendingException;
 use Behat\Mink\Exception\UnsupportedDriverActionException as MinkUnsupportedDriverActionException;
+use Behat\Mink\Element\NodeElement;
 
 /**
  * Browser interface helper context.
@@ -37,6 +38,21 @@ class BrowserContext extends BaseFeatureContext
      * @var array This will have a ( identifier => array )
      */
     public $mainAttributes = array();
+
+    /**
+     * Initializes context with parameters from behat.yml.
+     *
+     * @param array $parameters
+     */
+    public function __construct( array $parameters )
+    {
+        parent::__construct( $parameters );
+
+        // add Demo pages
+        $this->pageIdentifierMap += array(
+            "home" => "/",
+        );
+    }
 
     /**
      * This method works as a complement to the $mainAttributes var
@@ -168,7 +184,7 @@ class BrowserContext extends BaseFeatureContext
 
     /**
      * @Then /^(?:|I )am (?:at|on) the "([^"]*)(?:| page)"$/
-     * @Then /^(?:|I )see "([^"]*)" page$/
+     * @Then /^(?:|I )see (?:["']|)([^"]*)(?:["'] | |)page$/
      */
     public function iAmOnThe( $pageIdentifier )
     {
@@ -193,6 +209,59 @@ class BrowserContext extends BaseFeatureContext
         return array(
             new Step\When( "I follow \"{$link}\"" )
         );
+    }
+
+    /**
+     * @When /^I click at "([^"]*)" image$/
+     */
+    public function iClickAtImage( $image )
+    {
+        $xpath = ( isset( $this->mainAttributes[strtolower( $image )] ) ) ?
+                $this->makeXpathForBlock( $image ):
+                "//img[contains( @id, '$image') or contains( @src, '$image' )]";
+
+        $el = $this->getSession()->getPage()->find( 'xpath', $xpath );
+
+        Assertion::assertNotNull( $el, "Couldn't find '$image' image\nXPath = $xpath" );
+
+        $imageLink = $this->getParentNodeWithTag( $el, 'a' );
+        $imageLink->click();
+    }
+
+    /**
+     * Find an return a parent node with a specific tag
+     *
+     * @param  \Behat\Mink\Element\NodeElement  $el             The element to get parent of
+     * @param  string                           $tag            Tag to lookup
+     * @param  boolean                          $countMainNode  In certain cases we do not pretend to check actual node
+     *
+     * @return \Behat\Mink\Element\NodeElement
+     */
+    protected function getParentNodeWithTag( NodeElement $el, $tag, $countMainNode = true )
+    {
+        $mainTag = strtolower( $el->getTagName() );
+        Assertion::assertNotEquals(
+            $mainTag,
+            "html",
+            "Couldn't find tag '$tag', already in master node 'html'"
+        );
+
+        $tag = strtolower( $tag );
+        if ( $mainTag === $tag && $countMainNode )
+            return $el;
+
+        $el = $el->getParent();
+        while( strtolower( $el->getTagName() ) !== $tag )
+        {
+            Assertion::assertNotEquals(
+                $mainTag,
+                "html",
+                "Couldn't find tag '$tag', already in master node 'html'"
+            );
+            $el = $el->getParent();
+        }
+
+        return $el;
     }
 
     /**
@@ -423,6 +492,19 @@ class BrowserContext extends BaseFeatureContext
             $objectListTable->findAll( 'css', 'tr' ),
             'Found incorrect number of table rows.'
         );
+    }
+
+    /**
+     * @Then /^I see (?:a |)"([^"]*)" (?:content |block |)on the page$/
+     */
+    public function iSeeContentOnThePage( $block )
+    {
+        $el = $this->getSession()->getPage()->find(
+            "xpath",
+            $this->makeXpathForBlock( $block )
+        );
+
+        Assertion::assertNotNull( $el, "Couldn't find content '$block'" );
     }
 
     /**
