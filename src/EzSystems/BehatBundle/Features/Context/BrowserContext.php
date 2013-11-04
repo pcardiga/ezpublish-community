@@ -163,7 +163,9 @@ class BrowserContext extends BaseFeatureContext
             new Step\When( 'I fill in "Username" with "' . $user . '"' ),
             new Step\When( 'I fill in "Password" with "' . $password . '"' ),
             new Step\When( 'I press "Login"' ),
-            new Step\Then( 'I should be redirected to "/"' ),
+            new Step\When( 'I should be redirected to "/"' ), // needed cause we're testing on
+            new Step\When( 'I press "Redirect"' ),            // community version which has
+            new Step\Then( 'I should be on "/"' ),            // debug redirect active as default
         );
     }
 
@@ -185,9 +187,21 @@ class BrowserContext extends BaseFeatureContext
     }
 
     /**
-     * @Given /^(?:|I )click (?:on|at) "([^"]*)" link$/
+     * @When /^(?:|I )click (?:on|at) (?:the |)"([^"]*)" button$/
      *
-     * Can also be used @When steps
+     * Can also be used @Given steps
+     */
+    public function iClickAtButton( $button )
+    {
+        return array(
+            new Step\When( "I press \"{$button}\"" )
+        );
+    }
+
+    /**
+     * @When /^(?:|I )click (?:on|at) (?:the |)"([^"]*)" link$/
+     *
+     * Can also be used @Given steps
      */
     public function iClickAtLink( $link )
     {
@@ -235,6 +249,20 @@ class BrowserContext extends BaseFeatureContext
         $el = $this->getSession()->getPage()->find( "xpath", $xpath );
 
         Assertion::assertNull( $el, "" );
+    }
+
+
+    /**
+     * @Given /^I am changing password$/
+     */
+    public function iEditPassword()
+    {
+        return array(
+            new Step\Given( 'I am on "My profile" page' ),
+            new Step\When( 'I click at "Change password" button' ),
+            new Step\When( 'I click at "Redirect" button' ),
+            new Step\Then( 'I see "Change password" page' ),
+        );
     }
 
     /**
@@ -304,6 +332,100 @@ class BrowserContext extends BaseFeatureContext
             "Search for \"{$this->priorSearchPhrase}\" returned {$arg1} matches",
             $resultCountElement->getText()
         );
+    }
+
+    /**
+     * @Then /^I see "([^"]*)" button$/
+     */
+    public function iSeeButton( $button )
+    {
+        Assertion::assertNotNull(
+            $this->getSession()->getPage()->findButton( $button ),
+            "Could not find '$button' button."
+        );
+    }
+
+    /**
+     * @Then /^I see (?:a |)checkbox field with "([^"]*)" label$/
+     */
+    public function iSeeCheckboxFieldWithLabel( $label )
+    {
+        $elements = $this->getSession()->getPage()->findAll(
+            "xpath",
+            "//input[@type = 'checkbox']/.."
+        );
+
+        Assertion::assertNotEquals( count( $elements ), 0, "Coudn't find any checkbox" );
+
+        $found = false;
+        for( $i = 0; $i < count( $elements ) && !$found; $i++ )
+        {
+            if( strpos( $elements[$i]->getText(), $label ) !== false )
+                $found = true;
+        }
+
+        // assert that it was found
+        Assertion::assertEquals( true, $found, "Couldn't find a checkbox with label '$label'" );
+    }
+
+    /**
+     * @Then /^I see "([^"]*)" error$/
+     */
+    public function iSeeError( $error )
+    {
+        $el = $this->getSession()->getPage()->find(
+            "xpath",
+            "//*[contains( @class, 'warning' ) or contains( @class, 'error' )]"
+                . "//*[contains( text(), " . $this->literal( $error ) . " )]"
+        );
+
+        Assertion::assertNotNull( $el, "Couldn't find error message '$error'" );
+        Assertion::assertContains( $error, $el->getText(), "Couldn't find error message '$error'" );
+    }
+
+    /**
+     * @Then /^I see key "([^"]*)" with (?:value |)"([^"]*)"$/
+     */
+    public function iSeeKeyWithValue( $key, $value )
+    {
+        $el = $this->getSession()->getPage()->findAll(
+            "xpath",
+            "//*[contains( text(), " . $this->literal( $key ) ." )]"
+        );
+
+        Assertion::assertNotNull( $el, "Couldn't find tag with '$key' text" );
+
+        $found = false;
+        for( $i = 0; $i < count( $el ) && !$found; $i++ )
+        {
+            $found = strpos( $el[$i]->getParent()->getText(), $value );
+        }
+
+        Assertion::assertNotEquals( false, $found, "Couldn't find a key '$key' with value '$value'" );
+    }
+
+    /**
+     * @Then /^I see "([^"]*)" link$/
+     */
+    public function iSeeLink( $link )
+    {
+        $this->iSeeInSomePlaceLink( 'main', $link );
+    }
+
+    /**
+     * @Then /^I see on ([A-Za-z\s]*) the "([^"]*)" link$/
+     */
+    public function iSeeInSomePlaceLink( $somePlace, $link )
+    {
+        $base = $this->makeXpathForBlock( $somePlace );
+        Assertion::assertNotNull( $link, "Missing link for searching on table" );
+
+        $literal = $this->literal( $link );
+        $el = $this->getSession()->getPage()->find(
+            "xpath",
+            "$base//a[contains( text(), $literal )][@href]"
+        );
+        Assertion::assertNotNull( $el, "Couldn't find a link for object '$link'" );
     }
 
     /**
@@ -557,6 +679,14 @@ class BrowserContext extends BaseFeatureContext
             $objectListTable->findAll( 'css', 'tr' ),
             'Found incorrect number of table rows.'
         );
+    }
+
+    /**
+     * @Then /^I see "([^"]*)" message$/
+     */
+    public function iSeeMessage( $text )
+    {
+        return array( new Step\Then( "I should see \"$text\"" ) );
     }
 
     /**
