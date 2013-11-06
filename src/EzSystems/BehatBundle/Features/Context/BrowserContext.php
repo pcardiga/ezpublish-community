@@ -39,6 +39,14 @@ class BrowserContext extends BaseFeatureContext
      */
     public $mainAttributes = array();
 
+    public function __construct( array $parameters )
+    {
+        parent::__construct($parameters);
+
+        // add home to the page identifiers
+        $this->pageIdentifierMap += array( "home" => "/" );
+    }
+
     /**
      * This method works as a complement to the $mainAttributes var
      *
@@ -171,7 +179,7 @@ class BrowserContext extends BaseFeatureContext
 
     /**
      * @Then /^(?:|I )am (?:at|on) the "([^"]*)(?:| page)"$/
-     * @Then /^(?:|I )see "([^"]*)" page$/
+     * @Then /^(?:|I )see (?:"|)([^"]*)(?:" |)page$/
      */
     public function iAmOnThe( $pageIdentifier )
     {
@@ -211,17 +219,66 @@ class BrowserContext extends BaseFeatureContext
     }
 
     /**
+     * @When /^on ([A-Za-z\s]*) I click at "([^"]*)" link$/
+     */
+    public function onBreadcrumbIClickAtLink( $somePlace, $link )
+    {
+        $base = $this->makeXpathForBlock( $somePlace );
+        if( empty( $base ) )
+            throw new PendingException( "Element '$somePlace' is not defined" );
+
+        $literal = $this->literal( $link );
+        $el = $this->getSession()->getPage()->find(
+            "xpath",
+            "$base//a[@href][contains( text(), $literal ) or contains( @href, $literal )]"
+        );
+
+        Assertion::assertNotNull( $el, "Couldn't find '$link' link" );
+
+        $el->click();
+    }
+
+
+    /**
+     * @Then /^I (?:don\'t|do not) see (?:a |)"([^"]*)" link$
+     */
+    public function iDontSeeALink( $link )
+    {
+        $this->onSomePlaceIDonTSeeALink( 'main', $link );
+    }
+
+    /**
+     * @Then /^on ([A-Za-z\s]*) I (?:don\'t|do not) see a "([^"]*)" link$/
+     */
+    public function onSomePlaceIDonTSeeALink( $somePlace, $link )
+    {
+        $xpath = $this->makeXpathForBlock( $somePlace );
+        if ( empty( $xpath ) )
+            throw new PendingException( "Element '$somePlace' not defined" );
+
+        $literal = $this->literal( $link );
+
+        $el = $this->getSession()->getPage()->find(
+            "xpath",
+            "//a[contains( text(), $literal ) or contains( @href, $literal )][@href]"
+        );
+
+        Assertion::assertNotNull( $el, "Link '$link' not found" );
+    }
+
+
+    /**
      * @Then /^(?:|I )(?:don\'t|do not) see links(?:|\:)$/
      */
     public function iDonTSeeLinks( TableNode $table )
     {
-        $this->iDonTSeeOnSomePlaceTheLinks( 'main', $table );
+        $this->onSomePlaceIDonTSeeTheLinks( 'main', $table );
     }
 
     /**
-     * @Given /^I (?:don\'t|do not) see on ([A-Za-z\s]*) the links:$/
+     * @Then /^on ([A-Za-z\s]*) I (?:don\'t|do not) see the links:$/
      */
-    public function iDonTSeeOnSomePlaceTheLinks( $somePlace, TableNode $table )
+    public function onSomePlaceIDonTSeeTheLinks( $somePlace, TableNode $table )
     {
         $rows = $table->getRows();
         array_shift( $rows );   // this is needed to take the first row ( readability only )
@@ -240,15 +297,23 @@ class BrowserContext extends BaseFeatureContext
     /**
      * @Then /^I (?:don\'t|do not) see(?: the| ) ([A-Za-z\s]*) menu$/
      */
-    public function iDonTSeeTheSubMenu( $menu )
+    public function iDonTSeeSomeMenu( $menu )
     {
-        $xpath = $this->makeXpathForBlock( "$menu menu" );
+        $this->iDonTSeeSomeElement( "$menu menu" );
+    }
+
+    /**
+     * @Then /^I (?:don\'t|do not) see(?: the| ) ([A-Za-z\s]*) element$/
+     */
+    public function iDonTSeeSomeElement( $element )
+    {
+        $xpath = $this->makeXpathForBlock( $element );
         if ( empty( $xpath ) )
-            throw new PendingException( "Menu '$menu' not defined" );
+            throw new PendingException( "Element '$element' not defined" );
 
         $el = $this->getSession()->getPage()->find( "xpath", $xpath );
 
-        Assertion::assertNull( $el, "" );
+        Assertion::assertNull( $el, "Element '$element' was unexpectly found" );
     }
 
 
@@ -369,6 +434,44 @@ class BrowserContext extends BaseFeatureContext
     }
 
     /**
+     * @Then /^I see (?:the|a|an) "([^"]*)" element$/
+     */
+    public function iSeeAnElement( $element)
+    {
+        $this->onSomePlaceISeeAnElement( 'main', $element );
+    }
+
+    /**
+     * @Then /^on ([A-Za-z\s]*) I see (?:the|a|an) "([^"]*)" element$/
+     *
+     * Element represents divs special chars, everything on browser that can't be
+     * found through simple text content
+     */
+    public function onSomePlaceISeeAnElement( $somePlace, $element )
+    {
+        $base = $this->makeXpathForBlock( $somePlace );
+        if( empty( $base ) )
+            throw new PendingException( "Element '$somePlace' not defined" );
+
+        // an element can't be search through content, so lets find through
+        // id, class, name, src or href
+        $literal = $this->literal( $element );
+        $el = $this->getSession()->getPage()->find(
+            "xpath",
+            "$base//*["
+                . "contains( @id, $literal )"
+                . "or contains( @class, $literal )"
+                . "or contains( @name, $literal )"
+                . "or contains( @src, $literal )"
+                . "or contains( @href, $literal )"
+            . "]"
+        );
+
+        Assertion::assertNotNull( $el, "Element '$element' not found" );
+    }
+
+
+    /**
      * @Then /^I see "([^"]*)" error$/
      */
     public function iSeeError( $error )
@@ -409,13 +512,13 @@ class BrowserContext extends BaseFeatureContext
      */
     public function iSeeLink( $link )
     {
-        $this->iSeeInSomePlaceLink( 'main', $link );
+        $this->onSomePlaceISeeLink( 'main', $link );
     }
 
     /**
-     * @Then /^I see on ([A-Za-z\s]*) the "([^"]*)" link$/
+     * @Then /^on ([A-Za-z\s]*) I see (?:the|an|a) "([^"]*)" link$/
      */
-    public function iSeeInSomePlaceLink( $somePlace, $link )
+    public function onSomePlaceISeeLink( $somePlace, $link )
     {
         $base = $this->makeXpathForBlock( $somePlace );
         Assertion::assertNotNull( $link, "Missing link for searching on table" );
@@ -433,15 +536,15 @@ class BrowserContext extends BaseFeatureContext
      */
     public function iSeeLinksForContentObjects( TableNode $table )
     {
-        $this->iSeeOnSomePlaceTheLinksForContentObjects( 'main', $table );
+        $this->onSomePlaceISeeTheLinksForContentObjects( 'main', $table );
     }
 
     /**
-     * @Given /^I see on ([A-Za-z\s]*) the links for Content objects(?:|\:)$/
+     * @Given /^on ([A-Za-z\s]*) I see the links for Content objects(?:|\:)$/
      *
      * @todo check the parents (if defined)
      */
-    public function iSeeOnSomePlaceTheLinksForContentObjects( $somePlace, TableNode $table)
+    public function onSomePlaceISeeTheLinksForContentObjects( $somePlace, TableNode $table )
     {
         $rows = $table->getRows();
         array_shift( $rows );   // this is needed to take the first row ( readability only )
@@ -494,13 +597,13 @@ class BrowserContext extends BaseFeatureContext
      */
     public function iSeeLinks( TableNode $table )
     {
-        $this->iSeeOnSomePlaceLinks( 'main', $table );
+        $this->onSomeSeeIPlaceLinks( 'main', $table );
     }
 
     /**
-     * @Then /^I see on ([A-Za-z\s]*) links:$/
+     * @Then /^on ([A-Za-z\s]*) I see links:$/
      */
-    public function iSeeOnSomePlaceLinks( $somePlace, TableNode $table )
+    public function onSomeSeeIPlaceLinks( $somePlace, TableNode $table )
     {
         $base = $this->makeXpathForBlock( $somePlace );
         // get all links
@@ -515,6 +618,7 @@ class BrowserContext extends BaseFeatureContext
             $links[] = $row[0];
 
         // and finaly verify their existence
+        $this->checkLinksExistence( $links, $available );
     }
 
     /**
@@ -553,15 +657,15 @@ class BrowserContext extends BaseFeatureContext
      */
     public function iSeeLinksForContentObjectsInFollowingOrder( TableNode $table )
     {
-        $this->iSeeOnSomePlaceLinksInFollowingOrder( 'main', $table );
+        $this->onSomePlaceISeeLinksInFollowingOrder( 'main', $table );
     }
 
     /**
-     * @Then /^I see on ([A-Za-z\s]*) links in following order:$/
+     * @Then /^on ([A-Za-z\s]*) I see links in following order:$/
      *
      *  @todo check "parent" node
      */
-    public function iSeeOnSomePlaceLinksInFollowingOrder( $somePlace, TableNode $table )
+    public function onSomePlaceISeeLinksInFollowingOrder( $somePlace, TableNode $table )
     {
         $base = $this->makeXpathForBlock( $somePlace );
         // get all links
@@ -682,6 +786,34 @@ class BrowserContext extends BaseFeatureContext
     }
 
     /**
+     * @Then /^I see (?:a |)"([^"]*)" key$/
+     */
+    public function iSeeKey( $key )
+    {
+        $this->onSomePlaceISeeAKey( 'main', $key );
+    }
+
+    /**
+     * @Then /^on ([A-Za-z\s]*) I see a "([^"]*)" key$/
+     */
+    public function onSomePlaceISeeAKey( $somePlace, $key )
+    {
+        $base = $this->makeXpathForBlock( $somePlace );
+        if( empty( $base ) )
+            throw new PendingException( "Element '$somePlace' is not defined" );
+
+        $literal = $this->literal( $key );
+
+        // get the key
+        // using 'contains' will help for the cases where there are spaces of \n on
+        // the tag, and if used '=' it wouldn't be found
+        $el = $this->getSession()->getPage()->find( "xpath", "$base//*[contains( text(), $literal )]" );
+
+        Assertion::assertNotNull( $el, "Couldn't find '$key' key" );
+        Assertion::assertEquals( trim( $el->getText() ), $key, "Couldn't find '$key' key" );
+    }
+
+    /**
      * @Then /^I see "([^"]*)" message$/
      */
     public function iSeeMessage( $text )
@@ -694,13 +826,21 @@ class BrowserContext extends BaseFeatureContext
      */
     public function iSeeSomeMenu( $menu )
     {
-        $xpath = $this->makeXpathForBlock( "$menu menu" );
-        if ( empty( $xpath ) )
-            throw new PendingException( "Menu '$menu' not defined" );
+        $this->iSeeSomeElement( "$menu menu" );
+    }
+
+    /**
+     * @Then /^I see (?:the |)([A-Za-z\s]*) element$/
+     */
+    public function iSeeSomeElement( $element )
+    {
+        $xpath = $this->makeXpathForBlock( $element );
+        if( empty( $xpath ) )
+            throw new PendingException( "Element '$element' is not defined" );
 
         $el = $this->getSession()->getPage()->find( "xpath", $xpath );
 
-        Assertion::assertNotNull( $el, "" );
+        Assertion::assertNotNull( $el, "Element '$element' not found" );
     }
 
     /**
@@ -810,13 +950,13 @@ class BrowserContext extends BaseFeatureContext
      */
     public function iSeeTextEmphasized( $text )
     {
-        $this->iSeeOnSomePlaceTextEmphasized( 'main', $text );
+        $this->onSomePlaceISeeTextEmphasized( 'main', $text );
     }
 
     /**
-     * @Then /^I see (?:on|at) "([^"]*)" (?:the |)"([^"]*)" text emphasized$/
+     * @Then /^on ([A-Za-z\s]*) I see (?:the |)"([^"]*)" text emphasized$/
      */
-    public function iSeeOnSomePlaceTextEmphasized( $somePlace, $text )
+    public function onSomePlaceISeeTextEmphasized( $somePlace, $text )
     {
         // first find the text
         $base = $this->makeXpathForBlock( $somePlace );
