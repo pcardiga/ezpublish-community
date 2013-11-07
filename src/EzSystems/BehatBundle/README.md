@@ -136,18 +136,18 @@ must/can have **page** type:
 * footer
 * header
 * breadcrumb
-* ...
 
 
 ### Type
 * page
 * table
-* link/links
-* title/topic
-* message/text
-* error/warning
+* link / links
+* title / topic
+* message / text
+* error / warning
 * button
-* place/block/element
+* place / block / element
+* node
 
 There are some types that are only for a specific step, like **extension** type
 that should be used only for preparing the system, ie. used at Given steps.
@@ -184,14 +184,13 @@ since it has many optional words like:
 ex: ```/^I see (?:the |an |a |)["'](.+)["'] (?:title|topic)$/``` here we have
 2 possible options)
 
-In Then sentences for almost each positive sentence, there is/should a negative
-sentence also.
+In Then sentences for almost each positive sentence, there is/should be/exist a
+negative sentence also.
 
 
 ## Complete list for avaliable sentences
 
-For a complete list of the avaliable sentences click [here](http://example.net/).
-
+For a complete list of the avaliable sentences click [here](https://github.com/ezsystems/ezpublish-community/blob/master/src/EzSystems/BehatBundle/README.md).
 (or go to Sentences.md in same folder of this document)
 
 
