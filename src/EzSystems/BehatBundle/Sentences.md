@@ -224,80 +224,80 @@ be discard on the implementation part.
 0. **@Then** ```/^I see (?:the |)links:$/```
 ```
 Then I see links:
-    | Links  |
-    | Link 1 |
-    | Li...
+        | Links  |
+        | Link 1 |
+        | Li...
 ```
 
 0. **@Then** ```/^on ([A-Za-z\s]*) I see (?:the |)links:$/```
 ```
 Then on [some place] I see the links:
-    | Links  |
-    | Link 1 |
-    | Li...
+        | Links  |
+        | Link 1 |
+        | Li...
 ```
 
 0. **@Then** ```/^on ([A-Za-z\s]*) I see (?:the |)links in (?:the |)following order:$/```
 ```
 Then on [some place] I see links in the following order:
-    | Links  |
-    | Link 1 |
-    | Li...
+        | Links  |
+        | Link 1 |
+        | Li...
 ```
 
  0. **@Then** ```/^I see links (?:for|of) Content objects(?:|\:)$/```
 ```
  Then I see links for Content objects:
-    | Links  |
-    | Link 1 |
-    | Li...
+        | Links  |
+        | Link 1 |
+        | Li...
 ```
 
 0. **@Then** ```/^on ([A-Za-z\s]*) I see (?:the |)links (?:for|of) Content objects(?:\:|)$/```
 ```
 Then on [some place] I see links of Content objects:
-    | Links  |
-    | Link 1 |
-    | Li...
+        | Links  |
+        | Link 1 |
+        | Li...
 ```
 
 0. **@Then** ```/^I see links (?:for|of) Content objects in following order(?:\:|)$/```
 ```
 Then I see links of Content objects in following order:
-    | Links  |
-    | Link 1 |
-    | Li...
+        | Links  |
+        | Link 1 |
+        | Li...
 ```
 
 0. **@Then** ```/^I see (?:the |)links in(?:\:|)$/```
 ```
 Then I see links
-    | Links  | Type   |
-    | Link 1 | Type A |
-    | Link 2 | Ty...
+        | Links  | Type   |
+        | Link 1 | Type A |
+        | Link 2 | Ty...
 ```
 
 0. **@Then** ```/^I see table with:$/```
 ```
 Then I see table with:
-    | Column 1 | Column N |
-    | Data 1.1 | Data N.1 |
-    | Data 1.2 | Data...
+        | Column 1 | Column N |
+        | Data 1.1 | Data N.1 |
+        | Data 1.2 | Data...
 ```
 
 0. **@Then** ```/^I (?:don\'t|do not) see (?:the |)links(?:\:|)$/```
 ```
 Then I don't see links:
-    | Links  |
-    | Link 1 |
-    | Li...
+        | Links  |
+        | Link 1 |
+        | Li...
 ```
 
 0. **@Then** ```/^on ([A-Za-z\s]*) I (?:don\'t|do not) see (?:the |)links(?:\:|)$/```
 ```
 Then on [some place] I do not see the links:
-    | Links  |
-    | Link 1 |
-    | Li...
+        | Links  |
+        | Link 1 |
+        | Li...
 ```
 
