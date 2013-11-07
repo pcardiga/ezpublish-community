@@ -43,7 +43,7 @@ So verify that to use the sentences in the Given one's it's only need to change
 the action (or all sentence) to the past (the When "click" will be Given "clicked")
 
 0. **@Given** ```/^I clicked (?:on|at) (?:the |)["'](.+)["'] button$/```
-   **@When**  ``` /^I click (?:on|at) (?:the |)["'](.+)["'] button$/```
+0. **@When**  ``` /^I click (?:on|at) (?:the |)["'](.+)["'] button$/```
 ```
 
 ```
@@ -52,7 +52,7 @@ the action (or all sentence) to the past (the When "click" will be Given "clicke
 ```
 
 0. **@Given** ```/^I clicked (?:on|at) (?:the |)["'](.+)["'] link$/```
-   **@When**  ```/^I click (?:on|at) (?:the |)["'](.+)["'] link$/```
+0. **@When**  ```/^I click (?:on|at) (?:the |)["'](.+)["'] link$/```
 
 
 ```
@@ -60,8 +60,8 @@ the action (or all sentence) to the past (the When "click" will be Given "clicke
     When I click at the '<which>' link
 ```
 
-0.**@Given** ```/^on ([A-Za-z\s]*) I clicked at ["'](.+)["'] link$/```
-  **@When**  ```/^on ([A-Za-z\s]*) I click at ["'](.+)["'] link$/```
+0. **@Given** ```/^on ([A-Za-z\s]*) I clicked at ["'](.+)["'] link$/```
+0. **@When**  ```/^on ([A-Za-z\s]*) I click at ["'](.+)["'] link$/```
 
 
 ```
