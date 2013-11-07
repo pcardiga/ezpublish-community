@@ -12,6 +12,7 @@ For the following documentationm you should remmeber:
 
 ## Single sentences
 
+
 ### Given
 
     I am on "<name>" page
@@ -21,6 +22,7 @@ For the following documentationm you should remmeber:
     I am logged in as a <type> user
     I have "<what>" [type]
     test is pending <some-reason>
+
 
 ### When
 
@@ -35,8 +37,10 @@ Notice that several When sentences can and should also be used in Given sentence
     I press "<button>"
     I search for "<what>"
     I attach "<what>"
+    I attach "<what>" in "<where>"
     I fill in "<key>" with "<value>"
     I fill a valid <which> form
+
 
 ### Then
 
@@ -63,15 +67,18 @@ About the tables, you shouldn't forget that the first row is always informative,
 it means that it will be discarded by implementation, is only for user
 readability.
 
+
 ### Given
 
     I have "<what>" with:
+
 
 ### When
 
     I fill the form with:
         | Key | Value |
     I fill <which> form with:
+
 
 ### Then
 
@@ -88,21 +95,34 @@ readability.
     I don't see [type] with:
     I don't see form filled with:
 
+
+
 ## Possible system definitions
 
 Following are the possible values for the words inside angular brackets ([]).
 
+
 ### Action
 * click
 * go to
+* attach
 
-There are some actions that have a specific tab, for example **go to** action must
-have **page** type:
+There are some actions that have a specific tab, for example **go to** action
+must/can have **page** type:
 
     I go to "<name>" page
 
-### Place
 
+### Place
+* main (this is the main content)
+* menu
+    * main menu
+    * sub menu
+    * side menu
+* footer
+* header
+* breadcrumb
+* ...
 
 
 ### Type
@@ -121,6 +141,7 @@ that should be used only for preparing the system, ie. used at Given steps.
 For more information on **pages**, **places** and **blocks** see each bundle,
 since these are defined in tested bundle itself
 
+
 ### eZ Content
 
 These are content specific for the eZ Publish:
@@ -137,25 +158,32 @@ Content object )
 
 ## Addicional information
 
-In general the sentences can have the appropriated sentence construction, since
-it is used many optional words like:
+In general the sentences can have the appropriated sentence construction,
+since it has many optional words like:
 * ```(?:the |an |a |)```
 * ```(?:on|at)```
 * ```(?:don\'t|do not)```
 * ```(?:\:|)```
 * ```(?:s|)```
 * ```['"](.+)["']```
+* ```(?:word1|word2)``` (in some cases you can choose from several words,
+ex: ```/^I see (?:the |an |a |)["'](.+)["'] (?:title|topic)$/``` here we have
+2 possible options)
 
-In Then sentences for almost each positive sentence, there is a negative sentence
-also.
-
+In Then sentences for almost each positive sentence, there is/should a negative
+sentence also.
 
 
 ## Complete list for avaliable sentences
+
+For a complete list of the avaliable sentences click [here](http://example.net/).
+
+(or go to Sentences.md in same folder of this document)
+
+
 
 # Preparing the system
 
 ## Content Manager
 
 ## System Manager
-
