@@ -245,7 +245,7 @@ Then on [some place] I see links in the following order:
         | Li...
 ```
 
- 0. **@Then** ```/^I see links (?:for|of) Content objects(?:|\:)$/```
+0. **@Then** ```/^I see links (?:for|of) Content objects(?:|\:)$/```
 ```
  Then I see links for Content objects:
         | Links  |
