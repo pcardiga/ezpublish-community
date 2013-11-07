@@ -16,7 +16,7 @@ For the following documentationm you should remmeber:
 
     I am on "<name>" page
     I am on <name> page for "<special-location>"
-    I am <action> <what>                             // I am changing password
+    I am <action> <what>
     I am logged in as "<username>" with "<password>"
     I am logged in as a <type> user
     I have "<what>" [type]
@@ -41,25 +41,20 @@ Notice that several When sentences can and should also be used in Given sentence
 ### Then
 
     I see "<what>" [type]
-    I don't see "<what>" [type]
     I see "<what>" [type] with "<value>"
     I see "<what>" [type] emphasized
     I see search <total> results
     I see a "<block>" on the page
     on [place] I see "<what>" [type]
-    on [place] I don't see "<what>" [type]
     I see key "<key>" with value "<value>"
-    I don't see key "<key>" with value "<value>"
     I check <name> page for "<special>" Location
     I see [type] for Content object
 
-### Summary
+    I don't see "<what>" [type]
+    I con't see "<what>" [type] with "<value>"
+    I don't see key "<key>" with value "<value>"
+    on [place] I don't see "<what>" [type]
 
-In general most of "on" can be "on", "at", "", "on the", "at the".
-Same happens for "don't"/"isn't it can be "don't" or "do not", "isn't" or "is not"
-
-In Then sentences for almost each positive sentence, there is a negative sentence
-also.
 
 
 ## Tabled sentences
@@ -81,16 +76,17 @@ readability.
 ### Then
 
     I see [type]:
-    I don't see [type]:
     I see [type] with:
     I see [type] in following order:
     on [place] I see "<what>" [type] in following order:
-    I don't see [type] with:
     I see form filled with:
-    I don't see form filled with:
     I see "<what>" [type] with attributes:
     I see [type] for [eZ Content]:
     I see [type] for [eZ Content] in following order:
+
+    I don't see [type]:
+    I don't see [type] with:
+    I don't see form filled with:
 
 ## Possible system definitions
 
@@ -136,6 +132,22 @@ These are content specific for the eZ Publish:
 * ...
 ( these should be presented with Camel Case, with the exception of "object" from
 Content object )
+
+
+
+## Addicional information
+
+In general the sentences can have the appropriated sentence construction, since
+it is used many optional words like:
+* (?:the |an |a |)
+* (?:on|at)
+* (?:don\'t|do not)
+* (?:\:|)
+* (?:s|)
+* ['"](.+)["']
+
+In Then sentences for almost each positive sentence, there is a negative sentence
+also.
 
 
 
