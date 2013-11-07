@@ -13,13 +13,13 @@ For the following documentationm you should remmeber:
 
 ### Given
 
-```@Given /^I am logged in as ["'](.+)["'] with password ["'](.+)["']$/```
+0. **@Given** ```/^I am logged in as ["'](.+)["'] with password ["'](.+)["']$/```
 
 ```
     Given I am logged in as "<user>" with password "<password>"
 ```
 
-```@Given /^I am (?:at|on) (?:|the )(?:["']|)(.+)(?:["'] |)page$/```
+0. **@Given** ```/^I am (?:at|on) (?:|the )(?:["']|)(.+)(?:["'] |)page$/```
 
 ```
     Given I am on <which>page
@@ -27,13 +27,13 @@ For the following documentationm you should remmeber:
     Given I am on the "<which>" page
 ```
 
-```@Given /^I am on ["'](.+)["'] (?:page |) for ["'](.+)["'](?: Location|)$/```
+0. **@Given** ```/^I am on ["'](.+)["'] (?:page |) for ["'](.+)["'](?: Location|)$/```
 
 ```
     Given I am on <page> for "<special-location>"
     Given I am on <some> page for "<special>" Location
 ```
-ex: Given I am on site map page for "Shopping" Location
+ex: ```Given I am on site map page for "Shopping" Location```
 
 ### When
 
@@ -42,9 +42,8 @@ Given sentences, they will also be posted here instead of the Given.
 So verify that to use the sentences in the Given one's it's only need to change
 the action (or all sentence) to the past (the When "click" will be Given "clicked")
 
-0. ```
-    @Given /^I clicked (?:on|at) (?:the |)["'](.+)["'] button$/
-    @When  /^I click (?:on|at) (?:the |)["'](.+)["'] button$/
+0. **@Given** ```/^I clicked (?:on|at) (?:the |)["'](.+)["'] button$/```
+   **@When**  ``` /^I click (?:on|at) (?:the |)["'](.+)["'] button$/```
 ```
 
 ```
@@ -52,42 +51,38 @@ the action (or all sentence) to the past (the When "click" will be Given "clicke
     When I click at the '<which>' button
 ```
 
-0.
-```
-    @When  /^I clicked (?:on|at) (?:the |)["'](.+)["'] link$/
-    @When  /^I click (?:on|at) (?:the |)["'](.+)["'] link$/
-```
+0. **@Given** ```/^I clicked (?:on|at) (?:the |)["'](.+)["'] link$/```
+   **@When**  ```/^I click (?:on|at) (?:the |)["'](.+)["'] link$/```
+
 
 ```
     When I click on "<which>" link
     When I click at the '<which>' link
 ```
 
-0.
-```
-    @Given /^on ([A-Za-z\s]*) I clicked at ["'](.+)["'] link$/
-    @When  /^on ([A-Za-z\s]*) I click at ["'](.+)["'] link$/
-```
+0.**@Given** ```/^on ([A-Za-z\s]*) I clicked at ["'](.+)["'] link$/```
+  **@When**  ```/^on ([A-Za-z\s]*) I click at ["'](.+)["'] link$/```
+
 
 ```
     When on [some place] I click on "<which>" link
     When on [some place] I click at the "<which>" link
 ```
 
-0. ```@When  /^I go to (?:|the )["'](.+)["'](?:| page)$/```
+0. **@When**  ```/^I go to (?:|the )["'](.+)["'](?:| page)$/```
 
 ```
     When I go to '<page>"
     When I go to the "<specific>" page
 ```
 
-0. ```@When /^I search for ["'](.+)["']$/```
+0. **@When**  ```/^I search for ["'](.+)["']$/```
 
 ```
     When I search for "<text>"
 ```
 
-0. ```@When /^I go to (?:the |)["'](.+)["'] (?:page |)(?:for|the|at|on) ["'](.+)["'](?: location|)$/```
+0. **@When**  ```/^I go to (?:the |)["'](.+)["'] (?:page |)(?:for|the|at|on) ["'](.+)["'](?: location|)$/```
 
 ```
     When I go to the "<some>" page on "<location>"
