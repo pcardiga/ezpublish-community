@@ -151,22 +151,6 @@ also.
 
 
 
-## Examples for the above sentences
-
-PUT LINK HERE TO ANOTHER README FILE
-
-### Given
-
-0. I am on "\<name\>" page
-    * example 1
-    * example 2
-0. I am on \<name\> page for "\<special-location\>"
-0. I am logged in as "\<username\>" with "\<password\>"
-0. I have "\<what\>" [type]
-0.
-0. I check <name> page for "<special>" location
-    ( page and location words are optional)
-
 ## Complete list for avaliable sentences
 
 # Preparing the system
