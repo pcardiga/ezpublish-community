@@ -68,12 +68,22 @@ the action (or all sentence) to the past (the When "click" will be Given "clicke
     Then I see "<which>" page
 
 
+
+
+
     @Then /^I see search (\d+) result(?:s|)$/
     Then I see search <total> results
 
 
+
+
+
+
     @Then /^I see ["'](.+)["'] button$/
     Then I see "<some>" button
+
+
+
 
 
     @Then /^I see (?:a |)checkbox (?:field |)with ["'](.+)["'] label$/
@@ -81,14 +91,23 @@ the action (or all sentence) to the past (the When "click" will be Given "clicke
     Then I see a checkbox field with '<some>' label
 
 
+
+
+
     @Then /^I see (?:the |an |a |)["'](.+)["'] node$/
     Then I see a "<common>" node
     Then I see the "<specific>" node
 
 
+
+
+
     @Then /^on ([A-Za-z\s]*) I see (?:the |an |a |)["'](.+)["'] element$/
     Then on [some place] I see "<another>" element
     Then on [some place] I see the "<specific>" element
+
+
+
 
 
     @Then /^I see ["'](.+)["'] error(?: message|)$/
