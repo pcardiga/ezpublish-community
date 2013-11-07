@@ -15,15 +15,20 @@ For the following documentationm you should remmeber:
 
 0. ```@Given /^I am logged in as ["'](.+)["'] with password ["'](.+)["']$/```
 
+
     Given I am logged in as "<user>" with password "<password>"
 
+
 0. ```@Given /^I am (?:at|on) (?:|the )(?:["']|)(.+)(?:["'] |)page$/```
+
 
     Given I am on <which>page
     Given I am at <which> page
     Given I am on the "<which>" page
 
+
 0. ```@Given /^I am on ["'](.+)["'] (?:page |) for ["'](.+)["'](?: Location|)$/```
+
 
     Given I am on <page> for "<special-location>"
     Given I am on <some> page for "<special>" Location
