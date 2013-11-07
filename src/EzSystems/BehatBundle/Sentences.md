@@ -67,84 +67,106 @@ the action (or all sentence) to the past (the When "click" will be Given "clicke
     Then I see <which> page
     Then I see "<which>" page
 
+
     @Then /^I see search (\d+) result(?:s|)$/
     Then I see search <total> results
 
+
     @Then /^I see ["'](.+)["'] button$/
     Then I see "<some>" button
+
 
     @Then /^I see (?:a |)checkbox (?:field |)with ["'](.+)["'] label$/
     Then I see checkbox with "<some>" label
     Then I see a checkbox field with '<some>' label
 
+
     @Then /^I see (?:the |an |a |)["'](.+)["'] node$/
     Then I see a "<common>" node
     Then I see the "<specific>" node
+
 
     @Then /^on ([A-Za-z\s]*) I see (?:the |an |a |)["'](.+)["'] element$/
     Then on [some place] I see "<another>" element
     Then on [some place] I see the "<specific>" element
 
+
     @Then /^I see ["'](.+)["'] error(?: message|)$/
     Then I see "<message>" error
     Then I see "<some>" errror message
+
 
     @Then /^I see key ["'](.+)["'] with (?:value |)["'](.+)["']$/
     Then I see key "<key>" with "<value>"
     Then I see key "<key>" with value "<value>"
 
+
     @Then /^I see ["'](.+)["'] link$/
     Then I see "<some>" link
+
 
     @Then /^on ([A-Za-z\s]*) I see (?:the |an |a |)["'](.+)["'] link$/
     Then on [some place] I see a "<specific>" link
     Then on [some place] I see the "<other>" link
 
+
     @Then /^I see (?:a total of |)(\d+) ["'](.+)["'] elements listed$/
     Then I see <total> "<object>" elements listed
     Then I see a total of <total> "<object>" elements listed
 
+
     @Then /^I see (?:the |an |a |)["'](.+)["'] key$/
     Then I see "<some>" key
     Then I see the '<real>' key
+
 
     @Then /^I see (?:the |an |a |)["'](.+)["'] message$/
     Then I see a "<text>" message
     Then I see the "<message with 'single quotation' mark>" message
     Then I see the '<message with "quotation" marks>' message
 
+
     @Then /^I see (?:the |)([A-Za-z\s]*) menu$/
     Then I see main menu
     Then I see the side menu
+
 
     @Then /^I see (?:the |an |a |)([A-Za-z\s]*) element$/
     Then I see <special> element
     Then I see the <special> element
 
+
     @Then /^I see ["'](.+)["'] text emphasized$/
     Then I see "<some>" text emphasized
 
+
     @Then /^on ([A-Za-z\s]*) I see (?:the |)["'](.+)["'] text emphasized$/
     Then on [some place] I see "<some>" text emphasized
+
 
     @Then /^I see (?:the |an |a |)["'](.+)["'] (?:title|topic)$/
     Then I see "<some>" title
     Then I see the "<special>" topic
 
+
     @Then /^I should be redirected to ["'](.+)["']$/
     Then I should be redirected to "<path>"
+
 
     @Then /^I (?:don\'t|do not) see (?:a |the |)["'](.+)["'] link$/
     Then I don't see "<some>" link
     Then I do not see a "<some>" link
 
+
     @Then /^on ([A-Za-z\s]*) I (?:don\'t|do not) see (?:a |the |)["'](.+)["'] link$/
     Then on [some place] I don't see "<some>" link
     Then on [some place] I do not see the "<some>" link
 
+
     @Then /^I (?:don\'t|do not) see(?: the| ) ([A-Za-z\s]*) menu$/
     Then I don't see <which> menu
     Then I do not see the <which> menu
+
 
     @Then /^I (?:don\'t|do not) see(?: the| ) ([A-Za-z\s]*) element$/
     Then I don't see <which> element
