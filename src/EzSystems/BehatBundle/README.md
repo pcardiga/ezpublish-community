@@ -15,6 +15,7 @@ For the following documentationm you should remmeber:
 
 ### Given
 
+```
     I am on "<name>" page
     I am on <name> page for "<special-location>"
     I am <action> <what>
@@ -22,12 +23,14 @@ For the following documentationm you should remmeber:
     I am logged in as a <type> user
     I have "<what>" [type]
     test is pending <some-reason>
+```
 
 
 ### When
 
 Notice that several When sentences can and should also be used in Given sentences.
 
+```
     I [action] "<what>" [type]
     I [action] "<what>" [type] to "<where>"
     I on [place] [action] "<what>" [type]
@@ -40,10 +43,12 @@ Notice that several When sentences can and should also be used in Given sentence
     I attach "<what>" in "<where>"
     I fill in "<key>" with "<value>"
     I fill a valid <which> form
+```
 
 
 ### Then
 
+```
     I see "<what>" [type]
     I see "<what>" [type] with "<value>"
     I see "<what>" [type] emphasized
@@ -53,11 +58,14 @@ Notice that several When sentences can and should also be used in Given sentence
     I see key "<key>" with value "<value>"
     I check <name> page for "<special>" Location
     I see [type] for Content object
+```
 
+```
     I don't see "<what>" [type]
     I con't see "<what>" [type] with "<value>"
     I don't see key "<key>" with value "<value>"
     on [place] I don't see "<what>" [type]
+```
 
 
 
@@ -70,18 +78,22 @@ readability.
 
 ### Given
 
+```
     I have "<what>" with:
-
+```
 
 ### When
 
+```
     I fill the form with:
         | Key | Value |
     I fill <which> form with:
+```
 
 
 ### Then
 
+```
     I see [type]:
     I see [type] with:
     I see [type] in following order:
@@ -90,11 +102,13 @@ readability.
     I see "<what>" [type] with attributes:
     I see [type] for [eZ Content]:
     I see [type] for [eZ Content] in following order:
+```
 
+```
     I don't see [type]:
     I don't see [type] with:
     I don't see form filled with:
-
+```
 
 
 ## Possible system definitions
