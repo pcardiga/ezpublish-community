@@ -1,7 +1,7 @@
 # eZ Publish BDD Testing
 
 This as a fast summary of the possible sentences,
-and the gidelines for in case you want to add new sentences.
+and the guidelines for in case you want to add new sentences.
 
 For the following documentationm you should remmeber:
 
@@ -139,12 +139,12 @@ Content object )
 
 In general the sentences can have the appropriated sentence construction, since
 it is used many optional words like:
-* (?:the |an |a |)
-* (?:on|at)
-* (?:don\'t|do not)
-* (?:\:|)
-* (?:s|)
-* ['"](.+)["']
+* ```(?:the |an |a |)```
+* ```(?:on|at)```
+* ```(?:don\'t|do not)```
+* ```(?:\:|)```
+* ```(?:s|)```
+* ```['"](.+)["']```
 
 In Then sentences for almost each positive sentence, there is a negative sentence
 also.

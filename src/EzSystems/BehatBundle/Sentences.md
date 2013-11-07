@@ -219,7 +219,7 @@ Notice that first row of the tables is for information/readability only, it will
 be discard on the implementation part.
 
 
-### Then tabled sentenced
+### Then
 
 0. **@Then** ```/^I see (?:the |)links:$/```
 ```
