@@ -30,7 +30,7 @@ For the following documentationm you should remmeber:
 
 Notice that several When sentences can and should also be used in Given sentences.
 
-```
+```Cucumber
     I [action] "<what>" [type]
     I [action] "<what>" [type] to "<where>"
     I on [place] [action] "<what>" [type]
@@ -48,7 +48,7 @@ Notice that several When sentences can and should also be used in Given sentence
 
 ### Then
 
-```
+```Cucumber
     I see "<what>" [type]
     I see "<what>" [type] with "<value>"
     I see "<what>" [type] emphasized
@@ -60,7 +60,7 @@ Notice that several When sentences can and should also be used in Given sentence
     I see [type] for Content object
 ```
 
-```
+```Cucumber
     I don't see "<what>" [type]
     I con't see "<what>" [type] with "<value>"
     I don't see key "<key>" with value "<value>"
@@ -78,13 +78,13 @@ readability.
 
 ### Given
 
-```
+```Cucumber
     I have "<what>" with:
 ```
 
 ### When
 
-```
+```Cucumber
     I fill the form with:
         | Key | Value |
     I fill <which> form with:
@@ -93,7 +93,7 @@ readability.
 
 ### Then
 
-```
+```Cucumber
     I see [type]:
     I see [type] with:
     I see [type] in following order:
@@ -104,7 +104,7 @@ readability.
     I see [type] for [eZ Content] in following order:
 ```
 
-```
+```Cucumber
     I don't see [type]:
     I don't see [type] with:
     I don't see form filled with:

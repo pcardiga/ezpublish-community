@@ -14,23 +14,23 @@ For the following documentationm you should remmeber:
 ### Given
 
 0. **@Given** ```/^I am logged in as ["'](.+)["'] with password ["'](.+)["']$/```
-```
+```Cucumber
 Given I am logged in as "<user>" with password "<password>"
 ```
 
 0. **@Given** ```/^I am (?:at|on) (?:|the )(?:["']|)(.+)(?:["'] |)page$/```
-```
+```Cucumber
 Given I am on <which>page
 Given I am at <which> page
 Given I am on the "<which>" page
 ```
 
 0. **@Given** ```/^I am on ["'](.+)["'] (?:page |) for ["'](.+)["'](?: Location|)$/```
-```
+```Cucumber
 Given I am on <page> for "<special-location>"
 Given I am on <some> page for "<special>" Location
 ```
-ex: ```Given I am on site map page for "Shopping" Location```
+ex: ```Cucumber Given I am on site map page for "Shopping" Location```
 
 ### When
 
