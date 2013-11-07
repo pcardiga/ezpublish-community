@@ -43,6 +43,7 @@ the action (or all sentence) to the past (the When "click" will be Given "clicke
     @Given /^I clicked (?:on|at) (?:the |)["'](.+)["'] button$/
     @When  /^I click (?:on|at) (?:the |)["'](.+)["'] button$/
 ```
+
     ```
     When I click on "<which>" button
     When I click at the '<which>' button
@@ -52,6 +53,7 @@ the action (or all sentence) to the past (the When "click" will be Given "clicke
     @When  /^I clicked (?:on|at) (?:the |)["'](.+)["'] link$/
     @When  /^I click (?:on|at) (?:the |)["'](.+)["'] link$/
 ```
+
     ```
     When I click on "<which>" link
     When I click at the '<which>' link
@@ -61,23 +63,27 @@ the action (or all sentence) to the past (the When "click" will be Given "clicke
     @Given /^on ([A-Za-z\s]*) I clicked at ["'](.+)["'] link$/
     @When  /^on ([A-Za-z\s]*) I click at ["'](.+)["'] link$/
 ```
+
     ```
     When on [some place] I click on "<which>" link
     When on [some place] I click at the "<which>" link
     ```
 
 0.```@When  /^I go to (?:|the )["'](.+)["'](?:| page)$/```
+
 ```
     When I go to '<page>"
     When I go to the "<specific>" page
 ```
 
 0.```@When /^I search for ["'](.+)["']$/```
+
 ```
     When I search for "<text>"
 ```
 
 0.```@When /^I go to (?:the |)["'](.+)["'] (?:page |)(?:for|the|at|on) ["'](.+)["'](?: location|)$/```
+
 ```
     When I go to the "<some>" page on "<location>"
 ```
