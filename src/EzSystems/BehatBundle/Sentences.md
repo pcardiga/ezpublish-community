@@ -34,30 +34,30 @@ Given sentences, they will also be posted here instead of the Given.
 So verify that to use the sentences in the Given one's it's only need to change
 the action (or all sentence) to the past (the When "click" will be Given "clicked")
 
-@Given /^I clicked (?:on|at) (?:the |)["'](.+)["'] button$/
-@When  /^I click (?:on|at) (?:the |)["'](.+)["'] button$/
-When I click on "<which>" button
-When I click at the '<which>' button
+    @Given /^I clicked (?:on|at) (?:the |)["'](.+)["'] button$/
+    @When  /^I click (?:on|at) (?:the |)["'](.+)["'] button$/
+    When I click on "<which>" button
+    When I click at the '<which>' button
 
-@When  /^I clicked (?:on|at) (?:the |)["'](.+)["'] link$/
-@When  /^I click (?:on|at) (?:the |)["'](.+)["'] link$/
-When I click on "<which>" link
-When I click at the '<which>' link
+    @When  /^I clicked (?:on|at) (?:the |)["'](.+)["'] link$/
+    @When  /^I click (?:on|at) (?:the |)["'](.+)["'] link$/
+    When I click on "<which>" link
+    When I click at the '<which>' link
 
-@Given /^on ([A-Za-z\s]*) I clicked at ["'](.+)["'] link$/
-@When  /^on ([A-Za-z\s]*) I click at ["'](.+)["'] link$/
-When on [some place] I click on "<which>" link
-When on [some place] I click at the "<which>" link
+    @Given /^on ([A-Za-z\s]*) I clicked at ["'](.+)["'] link$/
+    @When  /^on ([A-Za-z\s]*) I click at ["'](.+)["'] link$/
+    When on [some place] I click on "<which>" link
+    When on [some place] I click at the "<which>" link
 
-@When  /^I go to (?:|the )["'](.+)["'](?:| page)$/
-When I go to '<page>"
-When I go to the "<specific>" page
+    @When  /^I go to (?:|the )["'](.+)["'](?:| page)$/
+    When I go to '<page>"
+    When I go to the "<specific>" page
 
-@When /^I search for ["'](.+)["']$/
-When I search for "<text>"
+    @When /^I search for ["'](.+)["']$/
+    When I search for "<text>"
 
-@When /^I go to (?:the |)["'](.+)["'] (?:page |)(?:for|the|at|on) ["'](.+)["'](?: location|)$/
-When I go to the "<some>" page on "<location>"
+    @When /^I go to (?:the |)["'](.+)["'] (?:page |)(?:for|the|at|on) ["'](.+)["'](?: location|)$/
+    When I go to the "<some>" page on "<location>"
 
 
 ### Then
