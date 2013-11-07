@@ -39,8 +39,7 @@ Given sentences, they will also be posted here instead of the Given.
 So verify that to use the sentences in the Given one's it's only need to change
 the action (or all sentence) to the past (the When "click" will be Given "clicked")
 
-0.
-```
+0. ```
     @Given /^I clicked (?:on|at) (?:the |)["'](.+)["'] button$/
     @When  /^I click (?:on|at) (?:the |)["'](.+)["'] button$/
 ```
@@ -58,8 +57,8 @@ the action (or all sentence) to the past (the When "click" will be Given "clicke
 
 ```
     When I click on "<which>" link
-When I click at the '<which>' link
-    ```
+    When I click at the '<which>' link
+```
 
 0.
 ```
