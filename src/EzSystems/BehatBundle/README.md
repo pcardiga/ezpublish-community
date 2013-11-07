@@ -15,7 +15,7 @@ For the following documentationm you should remmeber:
 
 ### Given
 
-```
+```Cucumber
     I am on "<name>" page
     I am on <name> page for "<special-location>"
     I am <action> <what>
